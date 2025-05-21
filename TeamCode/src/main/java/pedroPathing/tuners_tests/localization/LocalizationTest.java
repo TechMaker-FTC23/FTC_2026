@@ -12,6 +12,7 @@ import static com.pedropathing.follower.FollowerConstants.rightRearMotorDirectio
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.pedropathing.localization.Pose;
 import com.pedropathing.util.Constants;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -37,7 +38,6 @@ import pedroPathing.constants.*;
  * @author Anyi Lin - 10158 Scott's Bots
  * @version 1.0, 5/6/2024
  */
-@Config
 @TeleOp(group = "Teleop Test", name = "Localization Test")
 public class LocalizationTest extends OpMode {
     private PoseUpdater poseUpdater;
@@ -103,9 +103,9 @@ public class LocalizationTest extends OpMode {
         double x = gamepad1.left_stick_x; // this is strafing
         double rx = gamepad1.right_stick_x;
 
-        if(gamepad1.a){
-            poseUpdater.resetOffset();
-
+        if(gamepad1.cross){
+            poseUpdater.setStartingPose(new Pose());
+            poseUpdater.getLocalizer().setPose(new Pose());
         }
         // Denominator is the largest motor power (absolute value) or 1
         // This ensures all the powers maintain the same ratio, but only when

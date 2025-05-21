@@ -15,6 +15,7 @@ public class FConstants {
         FollowerConstants.rightFrontMotorName = "rightFront";
         FollowerConstants.rightRearMotorName = "rightRear";
 
+
         FollowerConstants.leftFrontMotorDirection = DcMotorSimple.Direction.FORWARD;
         FollowerConstants.leftRearMotorDirection = DcMotorSimple.Direction.FORWARD;
         FollowerConstants.rightFrontMotorDirection = DcMotorSimple.Direction.REVERSE;
@@ -25,19 +26,20 @@ public class FConstants {
         FollowerConstants.xMovement = 97.8568970687746;
         FollowerConstants.yMovement = 78.51187638410434;
 
+        FollowerConstants.useBrakeModeInTeleOp = true;
         FollowerConstants.forwardZeroPowerAcceleration =  -47.69858492933664;
         FollowerConstants.lateralZeroPowerAcceleration = -93.27135472370485;
 
-        FollowerConstants.translationalPIDFCoefficients.setCoefficients(0.02,0,0.001,0.02);
-        FollowerConstants.useSecondaryTranslationalPID = true;
+        FollowerConstants.translationalPIDFCoefficients.setCoefficients(0.05,0,0.01,0.01);
+        FollowerConstants.useSecondaryTranslationalPID = false;
         FollowerConstants.secondaryTranslationalPIDFCoefficients.setCoefficients(0.1,0,0.01,0); // Not being used, @see useSecondaryTranslationalPID
 
-        FollowerConstants.headingPIDFCoefficients.setCoefficients(1,0.04,0.1,0);
-        FollowerConstants.useSecondaryHeadingPID = true;
+        FollowerConstants.headingPIDFCoefficients.setCoefficients(1.08,0.05,0.13,0);
+        FollowerConstants.useSecondaryHeadingPID = false;
         FollowerConstants.secondaryHeadingPIDFCoefficients.setCoefficients(2,0,0.01,0); // Not being used, @see useSecondaryHeadingPID
 
-        FollowerConstants.drivePIDFCoefficients.setCoefficients(0.005,0.0001,0.0001,0.6,0.05);
-        FollowerConstants.useSecondaryDrivePID = true;
+        FollowerConstants.drivePIDFCoefficients.setCoefficients(0.005,0.0003,0,1,0.01);
+        FollowerConstants.useSecondaryDrivePID = false;
         FollowerConstants.secondaryDrivePIDFCoefficients.setCoefficients(0.1,0,0,0.6,0); // Not being used, @see useSecondaryDrivePID
 
         FollowerConstants.zeroPowerAccelerationMultiplier = 4;

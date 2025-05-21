@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.util.Constants;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -12,6 +13,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.pathgen.BezierLine;
 import com.pedropathing.pathgen.Path;
 import com.pedropathing.pathgen.Point;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
@@ -29,15 +31,16 @@ import pedroPathing.constants.LConstants;
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 3/12/2024
  */
+
 @Config
 @Autonomous (name = "Straight Back And Forth", group = "PIDF Tuning")
 public class StraightBackAndForth extends OpMode {
     private Telemetry telemetryA;
 
-    public static double DISTANCE = 40;
+    public static double DISTANCE = 100;
 
-    private boolean forward = true;
-
+    private int forward = 0;
+    ElapsedTime time = new ElapsedTime();
     private Follower follower;
 
     private Path forwards;
@@ -73,15 +76,35 @@ public class StraightBackAndForth extends OpMode {
     public void loop() {
         follower.update();
         if (!follower.isBusy()) {
-            if (forward) {
-                forward = false;
-                follower.followPath(backwards);
-            } else {
-                forward = true;
-                follower.followPath(forwards);
+            switch (forward){
+                case 0: forward = 1;
+                        follower.followPath(backwards);
+                        break;
+                case 1: forward = 2;
+                        time.reset();
+                        time.startTime();
+                        break;
+                case 2: if(time.seconds()>2){
+                            forward = 3;
+                        }
+                        break;
+                case 3: follower.followPath(forwards);
+                        forward = 4;
+                        break;
+                case 4: forward = 5;
+                        time.reset();
+                        time.startTime();
+                        break;
+                case 5: if(time.seconds()>2){
+                            forward = 0;
+                        }
+                        break;
+                default: forward = 0; break;
             }
+
         }
 
+        telemetryA.addData("Setpoint", DISTANCE);
         telemetryA.addData("going forward", forward);
         follower.telemetryDebug(telemetryA);
     }

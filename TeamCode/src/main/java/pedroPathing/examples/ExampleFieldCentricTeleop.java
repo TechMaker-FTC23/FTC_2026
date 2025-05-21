@@ -2,7 +2,11 @@ package pedroPathing.examples;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
+import com.pedropathing.pathgen.BezierLine;
+import com.pedropathing.pathgen.Path;
+import com.pedropathing.pathgen.Point;
 import com.pedropathing.util.Constants;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -15,12 +19,13 @@ import pedroPathing.constants.LConstants;
  * @author Baron Henderson - 20077 The Indubitables
  * @version 2.0, 12/30/2024
  */
-
-@TeleOp(name = "Example Field-Centric Teleop", group = "Examples")
+@Disabled
+@TeleOp
 public class ExampleFieldCentricTeleop extends OpMode {
     private Follower follower;
     private final Pose startPose = new Pose(0,0,0);
-
+    private Path line;
+    private boolean lastCross;
     /** This method is call once when init is played, it initializes the follower **/
     @Override
     public void init() {
@@ -49,8 +54,21 @@ public class ExampleFieldCentricTeleop extends OpMode {
         - Turn Left/Right Movement: -gamepad1.right_stick_x
         - Robot-Centric Mode: false
         */
+        if(gamepad1.cross){
+            Pose actualPose = follower.getPose();
+            line = new Path(new BezierLine(new Point(actualPose), new Point(startPose)));
+            line.setLinearHeadingInterpolation(actualPose.getHeading(), startPose.getHeading());
 
-        follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, false);
+            follower.followPath(line);
+            lastCross = true;
+        }
+        else {
+            if(lastCross) {
+                follower.startTeleopDrive();
+            }
+            lastCross = false;
+            follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, false);
+        }
         follower.update();
 
         /* Telemetry Outputs of our Follower */
