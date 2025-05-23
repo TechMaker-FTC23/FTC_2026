@@ -43,11 +43,11 @@ public class PathTest extends OpMode {
     int path = 1;
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
     private final Pose StarPose = new Pose(1, 0, Math.toRadians(0));
-    private final Pose Começo = new Pose(2, 0, Math.toRadians(0));
-    private final Pose Coletacima = new Pose(160, -5, Math.toRadians(270));
-    private final Pose voltaEntrga = new Pose(40,20, Math.toRadians(135));
-    private final Pose ColetaMeio = new Pose(80,-75, Math.toRadians(180));
-    private final Pose entrega = new Pose(20,30, Math.toRadians(135));
+    private final Pose Beginning = new Pose(2, 0, Math.toRadians(0));
+    private final Pose CollectTop = new Pose(160, -5, Math.toRadians(270));
+    private final Pose BackBasket = new Pose(40,20, Math.toRadians(135));
+    private final Pose CollectMiddle = new Pose(80,-75, Math.toRadians(180));
+    private final Pose Basket = new Pose(20,30, Math.toRadians(135));
     private boolean wasFollowing = false;
        /**
      * This initializes the Follower and creates the PathChain for the "circle". Additionally, this
@@ -82,31 +82,31 @@ public class PathTest extends OpMode {
             }
             follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, false);
             if(gamepad1.square){
-                line = new Path(new BezierLine(new Point(follower.poseUpdater.getPose()), new Point(ColetaMeio)));
-                line.setLinearHeadingInterpolation(follower.poseUpdater.getPose().getHeading(), ColetaMeio.getHeading());
+                line = new Path(new BezierLine(new Point(follower.poseUpdater.getPose()), new Point(CollectMiddle)));
+                line.setLinearHeadingInterpolation(follower.poseUpdater.getPose().getHeading(), CollectMiddle.getHeading());
 
 
                 follower.followPath(line);
             }
             else if(gamepad1.cross){
-                line = new Path(new BezierLine(new Point(follower.poseUpdater.getPose()), new Point(Começo)));
-                line.setLinearHeadingInterpolation(follower.poseUpdater.getPose().getHeading(), Começo.getHeading());
+                line = new Path(new BezierLine(new Point(follower.poseUpdater.getPose()), new Point(Beginning)));
+                line.setLinearHeadingInterpolation(follower.poseUpdater.getPose().getHeading(), Beginning.getHeading());
 
 
                 follower.followPath(line);
             }
             else if(gamepad1.y){
-                line = new Path(new BezierLine(new Point(follower.poseUpdater.getPose()), new Point(entrega)));
-                line.setLinearHeadingInterpolation(follower.poseUpdater.getPose().getHeading(), entrega.getHeading());
+                line = new Path(new BezierLine(new Point(follower.poseUpdater.getPose()), new Point(Basket)));
+                line.setLinearHeadingInterpolation(follower.poseUpdater.getPose().getHeading(), Basket.getHeading());
 
 
                 follower.followPath(line);
             }
             else if(gamepad1.dpad_up) {
                 line = new Path(new BezierCurve(
-                        new Point(entrega),
-                        new Point(voltaEntrga),
-                        new Point(Começo)));
+                        new Point(Basket),
+                        new Point(BackBasket),
+                        new Point(Beginning)));
 
                 line.setConstantHeadingInterpolation(Math.toRadians(0));
 
@@ -117,7 +117,7 @@ public class PathTest extends OpMode {
                     line = new Path(new BezierCurve(
                             new Point(60.00, 30.),
                             new Point(150, 30),
-                            new Point(Coletacima)));
+                            new Point(CollectTop)));
 
                     line.setConstantHeadingInterpolation(Math.toRadians(90));
 
