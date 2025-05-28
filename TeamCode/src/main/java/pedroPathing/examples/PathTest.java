@@ -34,8 +34,8 @@ import pedroPathing.constants.LConstants;
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 3/12/2024
  */
-
-@TeleOp(name = "PathTest", group = "Examples")
+@Disabled
+@Autonomous(name = "PathTest", group = "Examples")
 public class PathTest extends OpMode {
     private Telemetry telemetryA;
     private Path line;
@@ -58,7 +58,7 @@ public class PathTest extends OpMode {
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setStartingPose(startPose);
 
-        line = new Path(new BezierPoint(StarPose));
+        line = new Path(new BezierLine(StarPose,Basket));
         follower.followPath(line);
         telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetryA.update();
