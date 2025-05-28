@@ -1,5 +1,6 @@
 package pedroPathing.examples;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -9,6 +10,7 @@ import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
 @TeleOp
+@Disabled
 public class TeleopWithClaw extends OpMode {
 
     private Follower follower;
