@@ -1,4 +1,4 @@
-package pedroPathing.examples;
+package pedroPathing;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -11,14 +11,17 @@ import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
 import com.pedropathing.util.Drawing;
 import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
@@ -27,6 +30,7 @@ import pedroPathing.constants.LConstants;
 @TeleOp
 public class PathChainLimelight extends OpMode {
     private Limelight3A limelight;
+    LimelightPoseUpdater llUpdater;
     public static double multiplier = 100.0; // converte metros para centímetros
     public static AngleUnit angle = AngleUnit.DEGREES;
     public static boolean isPedroPathing = true;
@@ -63,16 +67,68 @@ public class PathChainLimelight extends OpMode {
         follower.followPath(pathChain, true);
         telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetryA.update();
+        while(true){
+            Pose initialPose = getLimelightPose();
+            if(initialPose!=null){
+                follower.setStartingPose(initialPose);
+                break;
+            }
+        }
+    }
+    public static Pose weightedAveragePose(Pose odoPose, Pose visionPose, double odoWeight) {
+        double visionWeight = 1.0 - odoWeight;
+
+        double x = odoPose.getX() * odoWeight + visionPose.getX() * visionWeight;
+        double y = odoPose.getY() * odoWeight + visionPose.getY() * visionWeight;
+
+        // Para heading, faz interpolações circulares simples
+        double odoHeading = odoPose.getHeading();
+        double visionHeading = visionPose.getHeading();
+
+        double delta = angleWrap(visionHeading - odoHeading);
+        double heading = odoHeading + delta * visionWeight;
+
+        return new Pose(x, y, heading);
     }
 
+    // Garante que o ângulo esteja entre -π e π
+    public static double angleWrap(double angle) {
+        while (angle > Math.PI) angle -= 2 * Math.PI;
+        while (angle < -Math.PI) angle += 2 * Math.PI;
+        return angle;
+    }
     @Override
     public void start() {
+
         follower.startTeleopDrive();
+
     }
 
+    public Pose getLimelightPose(){
+
+        // Obtém os resultados da Limelight
+        LLResult result = limelight.getLatestResult();
+        if (result != null && result.isValid()) {
+            Pose3D botPose = result.getBotpose();
+            if (botPose != null) {
+                Position pos = botPose.getPosition();
+                YawPitchRollAngles ori = botPose.getOrientation();
+
+                // Converter de metros para centímetros
+                double xCm = pos.x * 100.0 /2.54;
+                double yCm = pos.y * 100.0/2.54;
+
+                // Heading (yaw) em graus → radianos
+                double headingRad = Math.toRadians(ori.getYaw());
+                return new Pose(xCm,yCm,headingRad);
+            }
+        }
+        return null;
+
+    }
     @Override
     public void loop() {
-        follower.update();
+        //follower.update();
 
         if (!follower.isBusy()) {
             if (wasFollowing) {
@@ -141,31 +197,24 @@ public class PathChainLimelight extends OpMode {
             wasFollowing = true;
         }
 
-        // ** Atualização de pose via Limelight (AprilTags) **
-        LLResult result = limelight.getLatestResult();
-        if (result != null && result.isValid()) {
-            Pose3D botPose = result.getBotpose_MT2();
+        // Atualiza a odometria
+        follower.poseUpdater.update();
+        Pose pose = getLimelightPose();
+        if(pose!=null){
+            follower.setPose(pose);
 
-            double x = botPose.getPosition().x * multiplier;
-            double y = botPose.getPosition().y * multiplier;
-            double heading = botPose.getOrientation().getYaw(angle);
-
-            // Atualiza pose no poseUpdater
-            follower.poseUpdater.setStartingPose(new Pose(x, y, heading));
-            // Armazena último pose conhecido
-            PositionX = x;
-            PositionY = y;
-
-            telemetryA.addData("Limelight Pose", String.format("x: %.2f y: %.2f θ: %.2f", x, y, heading));
-            Drawing.drawRobot(new Pose(x, y, heading), "#008000");
-        } else {
-            // Desenha última pose conhecida em vermelho caso não haja detecção
-            Drawing.drawRobot(new Pose(PositionX, PositionY, 0), "#FF0000");
         }
 
+        // Atualiza o follower
+        follower.update();
         // Desenha a pose estimada pelo odômetro/integrador
         telemetryA.addData("Pose", follower.getPose().toString());
-        Drawing.drawRobot(follower.getPose(), "#000080");
+        Pose posePlot = new Pose(
+                follower.poseUpdater.getPose().getX() /2.54,
+                follower.poseUpdater.getPose().getY()/ 2.54,
+                follower.poseUpdater.getPose().getHeading());
+        telemetryA.addData("Pose plot",posePlot.toString());
+        Drawing.drawRobot(posePlot, "#000080");
         Drawing.sendPacket();
         telemetryA.update();
     }
