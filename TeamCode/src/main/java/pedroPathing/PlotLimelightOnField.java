@@ -32,7 +32,7 @@ public class PlotLimelightOnField extends LinearOpMode {
             Canvas fieldOverlay = packet.fieldOverlay();
 
             if (result != null && result.isValid()) {
-                Pose3D botPose = result.getBotpose();
+                Pose3D botPose = result.getBotpose_MT2();
                 if (botPose != null) {
                     Position pos = botPose.getPosition();
                     YawPitchRollAngles ori = botPose.getOrientation();

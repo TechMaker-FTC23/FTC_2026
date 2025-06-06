@@ -1,8 +1,10 @@
 package pedroPathing;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
 import com.pedropathing.pathgen.BezierCurve;
@@ -10,6 +12,7 @@ import com.pedropathing.pathgen.BezierLine;
 import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
 import com.pedropathing.util.Drawing;
+import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -22,6 +25,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
@@ -29,6 +34,7 @@ import pedroPathing.constants.LConstants;
 @Config
 @TeleOp
 public class PathChainLimelight extends OpMode {
+    private static final Logger log = LoggerFactory.getLogger(PathChainLimelight.class);
     private Limelight3A limelight;
     LimelightPoseUpdater llUpdater;
     public static double multiplier = 100.0; // converte metros para centímetros
@@ -36,37 +42,27 @@ public class PathChainLimelight extends OpMode {
     public static boolean isPedroPathing = true;
     public static double PositionX = 0;
     public static double PositionY = 0;
-
+    private FtcDashboard dashboard;
     private Telemetry telemetryA;
     private PathChain pathChain;
     private Follower follower;
-    private boolean wasFollowing = false;
-
-    // Definição de poses
-    private final Pose startPose   = new Pose(0, 0, Math.toRadians(0));
-    private final Pose StarPose    = new Pose(1, 0, Math.toRadians(0));
-    private final Pose Começo      = new Pose(2, 0, Math.toRadians(0));
-    private final Pose ColetaMeio  = new Pose(80, -75, Math.toRadians(180));
-    private final Pose entrega     = new Pose(20, 30, Math.toRadians(135));
-    private final Pose voltaEntrega= new Pose(40, 20, Math.toRadians(135));
-    private final Pose ColetaCima  = new Pose(160, -5, Math.toRadians(270));
 
     @Override
     public void init() {
+
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
-        follower.setStartingPose(startPose);
+        follower.setStartingPose(new Pose());
+        follower.startTeleopDrive();
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.pipelineSwitch(0);
         limelight.start();
 
-        pathChain = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(startPose), new Point(StarPose)))
-                .build();
 
-        follower.followPath(pathChain, true);
         telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetryA.update();
+        dashboard = FtcDashboard.getInstance();
+
         while(true){
             Pose initialPose = getLimelightPose();
             if(initialPose!=null){
@@ -103,11 +99,57 @@ public class PathChainLimelight extends OpMode {
         follower.startTeleopDrive();
 
     }
+    public void plotPoses(Pose cam, Pose track){
+        TelemetryPacket packet = new TelemetryPacket();
+        Canvas fieldOverlay = packet.fieldOverlay();
+        double xCm = cam.getX();
+        double yCm = cam.getY();
 
+        // Heading (yaw) em graus → radianos
+        double headingRad = Math.toRadians(cam.getHeading());
+        fieldOverlay.setFill("green");
+        fieldOverlay.fillCircle(xCm, yCm, 10);
+
+        // Desenhar seta indicando direção
+        double lineLength = 20;
+        double x2 = xCm + Math.cos(headingRad) * lineLength;
+        double y2 = yCm + Math.sin(headingRad) * lineLength;
+        fieldOverlay.setStroke("black");
+        fieldOverlay.strokeLine(xCm, yCm, x2, y2);
+
+        // Exibir dados na telemetria
+        packet.put("x CAM", xCm);
+        packet.put("y CAM", yCm);
+        packet.put("heading° CAM", headingRad);
+
+        xCm = track.getX();
+        yCm = track.getY();
+
+        // Heading (yaw) em graus → radianos
+        headingRad = Math.toRadians(track.getHeading());
+        fieldOverlay.setFill("red");
+        fieldOverlay.fillCircle(xCm, yCm, 10);
+
+        // Desenhar seta indicando direção
+
+        x2 = xCm + Math.cos(headingRad) * lineLength;
+        y2 = yCm + Math.sin(headingRad) * lineLength;
+        fieldOverlay.setStroke("black");
+        fieldOverlay.strokeLine(xCm, yCm, x2, y2);
+
+        // Exibir dados na telemetria
+        packet.put("x track", xCm);
+        packet.put("y track", yCm);
+        packet.put("heading° track", headingRad);
+
+        dashboard.sendTelemetryPacket(packet);
+    }
     public Pose getLimelightPose(){
 
         // Obtém os resultados da Limelight
         LLResult result = limelight.getLatestResult();
+
+
         if (result != null && result.isValid()) {
             Pose3D botPose = result.getBotpose();
             if (botPose != null) {
@@ -119,103 +161,35 @@ public class PathChainLimelight extends OpMode {
                 double yCm = pos.y * 100.0/2.54;
 
                 // Heading (yaw) em graus → radianos
-                double headingRad = Math.toRadians(ori.getYaw());
+                double headingRad = ori.getYaw(AngleUnit.RADIANS);
+                // Desenhar o robô
+
+
                 return new Pose(xCm,yCm,headingRad);
             }
         }
         return null;
 
     }
+    private Pose lastPose = new Pose();
+    private Timer timer = new Timer();
     @Override
     public void loop() {
         //follower.update();
-
-        if (!follower.isBusy()) {
-            if (wasFollowing) {
-                follower.startTeleopDrive();
-                wasFollowing = false;
-            }
-
-            // Controle manual
-            follower.setTeleOpMovementVectors(
-                    -gamepad1.left_stick_y,
-                    -gamepad1.left_stick_x,
-                    -gamepad1.right_stick_x,
-                    false);
-
-            // Seleção de trajetórias via gamepad
-            if (gamepad1.square) {
-                pathChain = follower.pathBuilder()
-                        .addPath(new BezierLine(
-                                new Point(follower.poseUpdater.getPose()),
-                                new Point(ColetaMeio)))
-                        .setLinearHeadingInterpolation(
-                                follower.poseUpdater.getPose().getHeading(),
-                                ColetaMeio.getHeading())
-                        .build();
-                follower.followPath(pathChain, true);
-            } else if (gamepad1.cross) {
-                pathChain = follower.pathBuilder()
-                        .addPath(new BezierLine(
-                                new Point(follower.poseUpdater.getPose()),
-                                new Point(Começo)))
-                        .setLinearHeadingInterpolation(
-                                follower.poseUpdater.getPose().getHeading(),
-                                Começo.getHeading())
-                        .build();
-                follower.followPath(pathChain, true);
-            } else if (gamepad1.y) {
-                pathChain = follower.pathBuilder()
-                        .addPath(new BezierLine(
-                                new Point(follower.poseUpdater.getPose()),
-                                new Point(entrega)))
-                        .setLinearHeadingInterpolation(
-                                follower.poseUpdater.getPose().getHeading(),
-                                entrega.getHeading())
-                        .build();
-                follower.followPath(pathChain, true);
-            } else if (gamepad1.dpad_up) {
-                pathChain = follower.pathBuilder()
-                        .addPath(new BezierCurve(
-                                new Point(entrega),
-                                new Point(voltaEntrega),
-                                new Point(Começo)))
-                        .setConstantHeadingInterpolation(Math.toRadians(0))
-                        .build();
-                follower.followPath(pathChain, true);
-            } else if (gamepad1.circle) {
-                pathChain = follower.pathBuilder()
-                        .addPath(new BezierCurve(
-                                new Point(60.00, 30.00),
-                                new Point(150, 30),
-                                new Point(ColetaCima)))
-                        .setConstantHeadingInterpolation(Math.toRadians(90))
-                        .build();
-                follower.followPath(pathChain, true);
-            }
-        } else {
-            wasFollowing = true;
-        }
+        follower.setTeleOpMovementVectors(-gamepad1.left_stick_y,-gamepad1.left_stick_x,-gamepad1.right_stick_x,gamepad1.right_bumper);
 
         // Atualiza a odometria
-        follower.poseUpdater.update();
         Pose pose = getLimelightPose();
-        if(pose!=null){
+        if(pose!=null && timer.getElapsedTime()>250){
+            timer.resetTimer();
+            lastPose = pose;
             follower.setPose(pose);
+            follower.updatePose();
 
         }
 
         // Atualiza o follower
         follower.update();
-        // Desenha a pose estimada pelo odômetro/integrador
-        telemetryA.addData("Pose", follower.getPose().toString());
-        Pose posePlot = new Pose(
-                follower.poseUpdater.getPose().getX() /2.54,
-                follower.poseUpdater.getPose().getY()/ 2.54,
-                follower.poseUpdater.getPose().getHeading());
-        telemetryA.addData("Pose plot",posePlot.toString());
-        Drawing.drawRobot(posePlot, "#000080");
-        Drawing.sendPacket();
-        telemetryA.update();
+        plotPoses(lastPose,follower.poseUpdater.getPose());
     }
 }
