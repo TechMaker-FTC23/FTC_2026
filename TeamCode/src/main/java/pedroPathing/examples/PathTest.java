@@ -35,7 +35,7 @@ import pedroPathing.constants.LConstants;
  * @version 1.0, 3/12/2024
  */
 @Disabled
-@Autonomous(name = "PathTest", group = "Examples")
+@Autonomous
 public class PathTest extends OpMode {
     private Telemetry telemetryA;
     private Path line;
