@@ -23,7 +23,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 // Supondo que suas classes de constantes FConstants e LConstants estão acessíveis
-// e LConstants configura Pedro Pathing para usar DistanceUnit.CM
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
