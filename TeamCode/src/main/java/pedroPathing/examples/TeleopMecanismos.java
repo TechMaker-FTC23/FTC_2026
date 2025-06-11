@@ -37,8 +37,11 @@ public class TeleopMecanismos extends OpMode {
     private static final double ARM_DOWN_POS = 0.2;
 
     // Wrist positions
-    private static final double WRIST_UP_POS = 0.9;
-    private static final double WRIST_DOWN_POS = 0.1;
+    private static final double WRIST1_UP_POS = 0.0;
+    private static final double WRIST1_DOWN_POS = 0.23;
+
+    private static final double WRIST2_UP_POS = 0.23;
+    private static final double WRIST2_DOWN_POS = 0.0;
 
     // Elevator configuration
     private static final int ELEVATOR_MAX_HEIGHT_TICKS = 3000;
@@ -67,8 +70,9 @@ public class TeleopMecanismos extends OpMode {
         clawServo.setPosition(CLAW_CLOSED_POS);
         armServo1.setPosition(ARM_DOWN_POS);
         armServo2.setPosition(ARM_DOWN_POS);
-        wristServo1.setPosition(WRIST_DOWN_POS);
-        wristServo2.setPosition(WRIST_DOWN_POS);
+
+        wristServo1.setPosition(WRIST1_UP_POS);
+        wristServo2.setPosition(WRIST2_DOWN_POS);
     }
 
     @Override
@@ -89,11 +93,11 @@ public class TeleopMecanismos extends OpMode {
         }
 
         if (gamepad2.y) {
-            wristServo1.setPosition(WRIST_UP_POS);
-            wristServo2.setPosition(WRIST_UP_POS);
+            wristServo1.setPosition(WRIST1_UP_POS);
+            wristServo2.setPosition(WRIST2_UP_POS);
         } else if (gamepad2.x) {
-            wristServo1.setPosition(WRIST_DOWN_POS);
-            wristServo2.setPosition(WRIST_DOWN_POS);
+            wristServo1.setPosition(WRIST1_UP_POS);
+            wristServo2.setPosition(WRIST1_UP_POS);
         }
 
         if (gamepad2.a) {
@@ -107,10 +111,10 @@ public class TeleopMecanismos extends OpMode {
         int currentPosition = elevatorMotor.getCurrentPosition();
 
         if (!movingToPreset) {
-            if (gamepad2.right_trigger > 0.1 && currentPosition < ELEVATOR_MAX_HEIGHT_TICKS) {
+            if (gamepad2.right_trigger > 0.4 && currentPosition < ELEVATOR_MAX_HEIGHT_TICKS) {
                 elevatorMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 elevatorMotor.setPower(ELEVATOR_SPEED);
-            } else if (gamepad2.left_trigger > 0.1 && currentPosition > 0) {
+            } else if (gamepad2.left_trigger > 0.4 && currentPosition > 0) {
                 elevatorMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 elevatorMotor.setPower(-ELEVATOR_SPEED);
             } else {
