@@ -1,4 +1,4 @@
-package pedroPathing.subsystems; // Crie um pacote para subsistemas
+package pedroPathing.subsystems;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -6,15 +6,14 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class ClawSubsystem {
     private Servo clawServo;
 
-    // Posições da Garra (mantendo seus valores originais)
     public static final double CLAW_CLOSED_POS = 0.325;
     public static final double CLAW_OPEN_POS = 0.6;
 
     private boolean clawOpen = false;
 
     public ClawSubsystem(HardwareMap hardwareMap) {
-        clawServo = hardwareMap.get(Servo.class, "clawServo"); // Use o nome da sua configuração
-        closeClaw(); // Estado inicial
+        clawServo = hardwareMap.get(Servo.class, "clawServo");
+        closeClaw();
     }
 
     public void toggleClaw() {

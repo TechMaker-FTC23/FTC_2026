@@ -10,14 +10,17 @@ public class ArmSubsystem {
     private Servo armServo2;
 
     // Posições do Braço
-    public static final double ARM_UP_POS = 0.8;
-    public static final double ARM_DOWN_POS = 0.2;
+    public static final double ARM1_UP_POS = 0.8;
+    public static final double ARM1_DOWN_POS = 0.2;
+    public static final double ARM2_UP_POS = 0.2;
+    public static final double ARM2_DOWN_POS = 0.8;
 
-    // Posições do Pulso
     public static final double WRIST1_UP_POS = 0.0;
     public static final double WRIST1_DOWN_POS = 0.23;
-    public static final double WRIST2_UP_POS = 0.23; // No seu código original, gamepad2.y e gamepad2.x tinham lógicas diferentes para wrist2
+    public static final double WRIST2_UP_POS = 0.23;
     public static final double WRIST2_DOWN_POS = 0.0;
+    public static final double WRIST1_MEDIUM_POS = 0.115;
+    public static final double WRIST2_MEDIUM_POS = 0.115;
 
     public ArmSubsystem(HardwareMap hardwareMap) {
         wristServo1 = hardwareMap.get(Servo.class, "wristServo1");
@@ -25,20 +28,20 @@ public class ArmSubsystem {
         armServo1 = hardwareMap.get(Servo.class, "armServo1");
         armServo2 = hardwareMap.get(Servo.class, "armServo2");
 
-        // Definir posições iniciais
+
         setArmPositionDown();
-        setWrist1PositionUp(); // Ou a posição inicial que você preferir
-        setWrist2PositionDown(); // Ou a posição inicial que você preferir
+        setWrist1PositionUp();
+        setWrist2PositionDown();
     }
 
     public void setArmPositionUp() {
-        armServo1.setPosition(ARM_UP_POS);
-        armServo2.setPosition(ARM_UP_POS);
+        armServo1.setPosition(ARM1_UP_POS);
+        armServo2.setPosition(ARM2_UP_POS);
     }
 
     public void setArmPositionDown() {
-        armServo1.setPosition(ARM_DOWN_POS);
-        armServo2.setPosition(ARM_DOWN_POS);
+        armServo1.setPosition(ARM1_DOWN_POS);
+        armServo2.setPosition(ARM2_DOWN_POS);
     }
 
     public void setWrist1PositionUp() {
@@ -56,6 +59,15 @@ public class ArmSubsystem {
     public void setWrist2PositionDown() {
         wristServo2.setPosition(WRIST2_DOWN_POS);
     }
+
+    public void setWrist1PositionMedium() {
+        wristServo2.setPosition(WRIST1_MEDIUM_POS);
+    }
+
+    public void setWrist2PositionMedium() {
+        wristServo2.setPosition(WRIST2_MEDIUM_POS);
+    }
+
 
     // Método para a combinação do gamepad2.x original
     public void setBothWristsCustom(double wrist1Pos, double wrist2Pos) {

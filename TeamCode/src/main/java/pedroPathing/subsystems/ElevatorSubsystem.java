@@ -10,7 +10,7 @@ public class ElevatorSubsystem {
 
     // Configuração do Elevador
     public static final int ELEVATOR_MAX_HEIGHT_TICKS = 3000;
-    public static final double ELEVATOR_MANUAL_SPEED = 0.3; 
+    public static final double ELEVATOR_MANUAL_SPEED = 0.3;
 
     // Presets do Elevador
     public static final int ELEVATOR_PRESET_LOW = 500;
@@ -18,6 +18,7 @@ public class ElevatorSubsystem {
     public static final int ELEVATOR_PRESET_HIGH = ELEVATOR_MAX_HEIGHT_TICKS;
     public static final int ELEVATOR_PRESET_GROUND = 0;
 
+    //preciso calibrar (valores base)
     public static double PID_P = 0.005;
     public static double PID_I = 0.0001;
     public static double PID_D = 0.0002;
@@ -88,7 +89,7 @@ public class ElevatorSubsystem {
             }
             lastError = error;
 
-            double feedforward = PID_F; // Ajuste este valor
+            double feedforward = PID_F;
 
             double outputPower = proportional + integral + derivative + feedforward;
 
@@ -101,7 +102,6 @@ public class ElevatorSubsystem {
                 movingToPresetPID = false;
             }
         }
-        // Se não estiver em movingToPresetPID, a potência é controlada por setManualPower
     }
 
     public void stopMotor() {
