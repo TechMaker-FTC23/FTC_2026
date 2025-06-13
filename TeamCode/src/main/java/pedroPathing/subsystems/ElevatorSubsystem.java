@@ -8,9 +8,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class ElevatorSubsystem {
     private DcMotorEx elevatorMotor;
 
-    // Configuração do Elevador
     public static final int ELEVATOR_MAX_HEIGHT_TICKS = 3000;
-    public static final double ELEVATOR_MANUAL_SPEED = 0.3;
+    public static final double ELEVATOR_MANUAL_SPEED = 0.5;
 
     // Presets do Elevador
     public static final int ELEVATOR_PRESET_LOW = 500;

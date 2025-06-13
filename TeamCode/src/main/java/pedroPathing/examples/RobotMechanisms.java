@@ -1,9 +1,8 @@
 package pedroPathing.examples;
-
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import com.pedropathing.follower.Follower; // Para o drivetrain
+import com.pedropathing.follower.Follower;
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
@@ -12,7 +11,7 @@ import pedroPathing.subsystems.ClawSubsystem;
 import pedroPathing.subsystems.ElevatorSubsystem;
 
 @TeleOp
-public class TeleOpPrincipal extends OpMode {
+public class RobotMechanisms extends OpMode {
 
     private Follower follower;
 
@@ -43,11 +42,12 @@ public class TeleOpPrincipal extends OpMode {
     @Override
     public void loop() {
 
-        double drive = -gamepad1.left_stick_y;
+       /* double drive = -gamepad1.left_stick_y;
         double strafe = -gamepad1.left_stick_x;
         double turn = -gamepad1.right_stick_x;
         follower.setTeleOpMovementVectors(drive, strafe, turn, false);
         follower.update();
+       */
 
         // --- Controle da Garra (Gamepad 1) ---
         if (gamepad1.left_bumper &&!lbPreviouslyPressed) {
@@ -64,6 +64,7 @@ public class TeleOpPrincipal extends OpMode {
         if (gamepad2.y) {
             arm.setWrist1PositionUp();
             arm.setWrist2PositionUp();
+
         } else if (gamepad2.x) {
             arm.setWrist1PositionDown();
             arm.setWrist2PositionDown();
@@ -85,9 +86,9 @@ public class TeleOpPrincipal extends OpMode {
             elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_LOW);
         } else if (gamepad2.b) {
             elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_MEDIUM);
-        } else if (gamepad2.right_bumper) { // Mudei do gamepad2.y para não conflitar com o pulso
+        } else if (gamepad2.right_bumper) {
             elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
-        } else if (gamepad2.dpad_left) { // Exemplo para ir para o chão
+        } else if (gamepad2.dpad_left) {
             elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
         }
 
