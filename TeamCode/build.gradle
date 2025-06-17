@@ -14,10 +14,19 @@
 // Include common definitions from above.
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 24
+    }
     packagingOptions {
         jniLibs.useLegacyPackaging true
     }
@@ -28,5 +37,11 @@ dependencies {
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
 
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.7'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.1.0'
+    implementation "com.bylazar:ftcontrol:0.6.5"
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.1.0'
 }
