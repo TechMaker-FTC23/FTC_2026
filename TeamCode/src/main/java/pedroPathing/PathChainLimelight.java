@@ -27,8 +27,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.bylazar.ftcontrol.panels.Panels;
-
 
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
