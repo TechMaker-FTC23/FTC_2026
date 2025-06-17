@@ -1,4 +1,4 @@
-package pedroPathing.examples; // Ou seu pacote desejado
+package pedroPathing.Autos; // Ou seu pacote desejado
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
