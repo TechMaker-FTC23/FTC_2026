@@ -1,15 +1,11 @@
 package pedroPathing.examples;
 
-import static com.qualcomm.hardware.rev.RevHubOrientationOnRobot.xyzOrientation;
-
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -18,54 +14,68 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 public class LimelightComImu extends LinearOpMode {
 
     private Limelight3A limelight;
-    IMU imu;
+    private IMU imu;
 
     @Override
     public void runOpMode() throws InterruptedException {
 
-        imu = hardwareMap.get(com.qualcomm.robotcore.hardware.IMU.class, "imu");
+
+        imu = hardwareMap.get(IMU.class, "imu");
 
         RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
         RevHubOrientationOnRobot.UsbFacingDirection usbDirection = RevHubOrientationOnRobot.UsbFacingDirection.UP;
-
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
 
-        imu.initialize(new com.qualcomm.robotcore.hardware.IMU.Parameters(orientationOnRobot));
+        imu.initialize(new IMU.Parameters(orientationOnRobot));
 
-        double xRotation = 0;  // enter the desired X rotation angle here.
-        double yRotation = 0;  // enter the desired Y rotation angle here.
-        double zRotation = 0;  // enter the desired Z rotation angle here.
+        imu.resetYaw();
 
-        Orientation hubRotation = xyzOrientation(xRotation, yRotation, zRotation);
-
-        // Now initialize the IMU with this mounting orientation
-        RevHubOrientationOnRobot revHubOrientationOnRobot = new RevHubOrientationOnRobot(hubRotation);
-        imu.initialize(new IMU.Parameters(revHubOrientationOnRobot));
-        waitForStart();
+        // 2. Inicializar a Limelight
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-
-        telemetry.setMsTransmissionInterval(11);
-
         limelight.pipelineSwitch(0);
-
         limelight.start();
 
+        telemetry.addData("Status", "Inicialização Completa");
+        telemetry.addData("Info", "Pressione Play para começar a ler os dados");
+        telemetry.update();
+
+        waitForStart();
+
         while (opModeIsActive()) {
-            Pose3D botpose = new Pose3D(new Position(),new YawPitchRollAngles(AngleUnit.DEGREES,0,0,0,1));
+
             YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
-            limelight.updateRobotOrientation(orientation.getYaw(AngleUnit.DEGREES));
+            double currentYawDegrees = orientation.getYaw(AngleUnit.DEGREES);
+
+
+            limelight.updateRobotOrientation(currentYawDegrees);
+
 
             LLResult result = limelight.getLatestResult();
-            if (result != null) {
-                if (result.isValid()) {
-                    botpose = result.getBotpose();
-                    limelight.updateRobotOrientation(orientation.getYaw(AngleUnit.DEGREES));
 
-                }
+            Pose3D botpose = null;
+
+
+            if (result!= null && result.isValid()) {
+
+                botpose = result.getBotpose_MT2();
             }
-            telemetry.addData("Yaw", "%.2f Deg. (Heading)", orientation.getYaw(AngleUnit.DEGREES));
-            telemetry.addData("Botpose", botpose.toString());
+
+
+            telemetry.addData("IMU Yaw (Heading)", "%.2f Graus", currentYawDegrees);
+
+            if (botpose!= null) {
+                // O botpose retorna as coordenadas em metros.
+                telemetry.addData("Botpose X (metros)", "%.2f", botpose.getPosition().x);
+                telemetry.addData("Botpose Y (metros)", "%.2f", botpose.getPosition().y);
+                telemetry.addData("Botpose Z (metros)", "%.2f", botpose.getPosition().z);
+
+                telemetry.addData("Botpose Yaw (graus)", "%.2f", botpose.getOrientation().getYaw(AngleUnit.DEGREES));
+            } else {
+                telemetry.addData("Botpose", "Nenhuma pose válida detectada");
+            }
+
             telemetry.update();
         }
+        limelight.stop();
     }
 }
