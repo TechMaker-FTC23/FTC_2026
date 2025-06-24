@@ -35,7 +35,7 @@ import pedroPathing.constants.LConstants;
  */
 @Config
 @Disabled
-@Autonomous(name = "PID Test", group = "Examples")
+@Autonomous
 public class PIDTest extends OpMode {
     private Telemetry telemetryA;
     private Path line;
