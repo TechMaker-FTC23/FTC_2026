@@ -39,6 +39,9 @@ public class KalmanFilter2D {
     public void predict(Pose odometryPose) {
         // A odometria do Pedro Pathing já faz a predição para nós.
         // Nós simplesmente adotamos a nova pose da odometria como nossa nova predição.
+        if (odometryPose.getX() == 0 && odometryPose.getY() == 0 && odometryPose.getHeading() == 0) {
+            return;
+        }
         this.state = odometryPose;
 
         // Aumentamos a incerteza com base no tempo decorrido desde a última predição.

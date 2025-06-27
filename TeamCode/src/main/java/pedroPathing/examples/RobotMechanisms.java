@@ -1,4 +1,5 @@
 package pedroPathing.examples;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -9,6 +10,7 @@ import pedroPathing.constants.LConstants;
 import pedroPathing.subsystems.ArmSubsystem;
 import pedroPathing.subsystems.ClawSubsystem;
 import pedroPathing.subsystems.ElevatorSubsystem;
+@Disabled
 
 @TeleOp
 public class RobotMechanisms extends OpMode {
