@@ -56,17 +56,14 @@ public class LimelightComImu extends LinearOpMode {
         telemetryA.update();
 
         waitForStart();
-        while (opModeIsActive()) {
-            follower.startTeleopDrive();
-            follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
-            follower.setStartingPose(startPose);
-            follower.update();
-        }
+        follower.startTeleopDrive();
+
         while (opModeIsActive()) {
             TelemetryPacket packet = new TelemetryPacket();
             Canvas fieldOverlay = packet.fieldOverlay();
             YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
             double currentYawDegrees = orientation.getYaw(AngleUnit.DEGREES);
+            follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
 
             limelight.updateRobotOrientation(currentYawDegrees);
 
@@ -77,7 +74,6 @@ public class LimelightComImu extends LinearOpMode {
 
 
             if (result != null && result.isValid()) {
-
                 botpose = result.getBotpose_MT2();
             }
 
@@ -133,7 +129,6 @@ public class LimelightComImu extends LinearOpMode {
             packet.put("x", xCm);
             packet.put("y", yCm);
             packet.put("heading°", follower.getPose().getHeading());
-            wait(500);
             dashboard.sendTelemetryPacket(packet);
             telemetryA.update();
         }

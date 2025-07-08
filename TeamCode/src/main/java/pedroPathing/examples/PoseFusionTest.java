@@ -37,7 +37,7 @@ public class PoseFusionTest extends LinearOpMode {
     // Nosso filtro de fusão
     private KalmanFilter2D poseFilter;
 
-    private final Pose START_POSE = new Pose(0, 0, 0);
+    public final Pose START_POSE = new Pose(0, 0, 0);
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -66,28 +66,36 @@ public class PoseFusionTest extends LinearOpMode {
         telemetryA.update();
 
         waitForStart();
-
+        follower.startTeleopDrive();
         // --- LOOP DE TELEOP ---
+        Pose fusedPose = new Pose();
         while (opModeIsActive()) {
             // --- ATUALIZAÇÕES DE SENSORES E FILTRO ---
-
-            // 1. Atualiza o follower com os dados do OTOS/IMU. Isso nos dá a pose da odometria.
             follower.update();
+
+           // 1. Atualiza o follower com os dados do OTOS/IMU. Isso nos dá a pose da odometria.
             Pose odometryPose = follower.getPose();
-
-            // 2. Chama a etapa de PREDIÇÃO do filtro com a nova pose da odometria.
-            poseFilter.predict(odometryPose);
-
             // 3. Obtém a pose da visão da Limelight (se disponível)
             Pose visionPose = getVisionPose();
-
-            // 4. Se tivermos uma medição da visão, chama a etapa de ATUALIZAÇÃO do filtro.
-            if (visionPose!= null) {
-                poseFilter.update(visionPose);
+            // 2. Chama a etapa de PREDIÇÃO do filtro com a nova pose da odometria.
+            if(!(odometryPose.getX()==0 && odometryPose.getY()==0)) {
+                odometryPose = fusedPose;
             }
+            poseFilter.predict(odometryPose);
 
-            // 5. Pega a pose final fundida do filtro. Esta é a nossa "verdade absoluta".
-            Pose fusedPose = poseFilter.getEstimate();
+
+            if (visionPose != null) {
+
+
+                poseFilter.update(visionPose);
+                // 5. Pega a pose final fundida do filtro. Esta é a nossa "verdade absoluta".
+
+
+            }
+            fusedPose = poseFilter.getEstimate();
+            follower.setPose(fusedPose);
+
+
 
             // --- CONTROLE DO DRIVETRAIN ---
             // Em vez de resetar a pose do follower, nós implementamos o field-centric manualmente
@@ -98,17 +106,15 @@ public class PoseFusionTest extends LinearOpMode {
             double xInput = -gamepad1.left_stick_x; // Esquerda/Direita (Strafe)
             double turnInput = -gamepad1.right_stick_x; // Rotação
 
-            // Pega a orientação precisa do nosso filtro
-            double heading = fusedPose.getHeading();
-
-            // Rotaciona os vetores de movimento (x, y) pelo negativo do heading do robô
-            // para converter o comando (que é relativo ao campo) para um comando relativo ao robô.
-            double rotX = xInput * Math.cos(-heading) - yInput * Math.sin(-heading);
-            double rotY = xInput * Math.sin(-heading) + yInput * Math.cos(-heading);
-
             // Envia os vetores rotacionados para o follower em modo ROBOT-CENTRIC.
-            follower.setTeleOpMovementVectors(rotY, rotX, turnInput, false);
+            follower.setTeleOpMovementVectors(yInput, xInput, turnInput, false);
 
+           /* if(gamepad1.start){
+                imu.resetYaw();
+                follower.setPose(START_POSE);
+                odometryPose = START_POSE;
+                fusedPose = START_POSE;
+            }*/
             // --- PLOTAGEM E TELEMETRIA ---
             // Agora, a plotagem mostrará claramente o drift da odometria (vermelho)
             // e como a pose fundida (azul) se mantém correta.
@@ -124,6 +130,7 @@ public class PoseFusionTest extends LinearOpMode {
      */
     private Pose getVisionPose() {
         limelight.updateRobotOrientation(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
+        //limelight.updateRobotOrientation(follower.getPose().getHeading());
         LLResult result = limelight.getLatestResult();
 
         if (result == null ||!result.isValid()
@@ -136,7 +143,7 @@ public class PoseFusionTest extends LinearOpMode {
             return new Pose(
                     visionPose3D.getPosition().x * 100.0, // Converte metros para CM
                     visionPose3D.getPosition().y * 100.0,
-                    visionPose3D.getOrientation().getYaw(AngleUnit.RADIANS)
+                    visionPose3D.getOrientation().getYaw(AngleUnit.DEGREES)
             );
         }
         return null;
