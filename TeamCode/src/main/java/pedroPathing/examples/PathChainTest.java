@@ -8,18 +8,13 @@ import com.pedropathing.pathgen.BezierCurve;
 import com.pedropathing.pathgen.BezierLine;
 import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
-<<<<<<< HEAD
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-=======
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
->>>>>>> 4f8d5d55002046cb6f234d44a5877d62e44003ef
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
-@Disabled
 
 @TeleOp
 public class PathChainTest extends OpMode {
@@ -77,6 +72,7 @@ public class PathChainTest extends OpMode {
             }
 
             follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
+
 
             if (gamepad1.start) {
                 imu.resetYaw();
