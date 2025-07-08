@@ -3,17 +3,16 @@ package pedroPathing.examples;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
-
 import com.pedropathing.localization.Pose;
 import com.pedropathing.pathgen.BezierCurve;
 import com.pedropathing.pathgen.BezierLine;
 import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
+import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
@@ -22,6 +21,7 @@ public class PathChainTest extends OpMode {
     private Telemetry telemetryA;
     private PathChain pathChain;
     private Follower follower;
+    private IMU imu;
     int path = 1;
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
     private final Pose StarPose = new Pose(1, 0, Math.toRadians(0));
@@ -34,6 +34,16 @@ public class PathChainTest extends OpMode {
 
     @Override
     public void init() {
+        imu = hardwareMap.get(IMU.class, "imu");
+
+        RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
+        RevHubOrientationOnRobot.UsbFacingDirection usbDirection = RevHubOrientationOnRobot.UsbFacingDirection.UP;
+        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
+
+        imu.initialize(new IMU.Parameters(orientationOnRobot));
+
+        imu.resetYaw();
+
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setStartingPose(startPose);
 
@@ -61,7 +71,11 @@ public class PathChainTest extends OpMode {
                 wasFollowing = false;
             }
 
-            follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, false);
+            follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
+
+            if (gamepad1.start) {
+                imu.resetYaw();
+            }
 
             if (gamepad1.square) {
                 pathChain = follower.pathBuilder()
