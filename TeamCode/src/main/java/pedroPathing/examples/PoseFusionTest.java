@@ -194,7 +194,7 @@ public class PoseFusionTest extends LinearOpMode {
         double yInches = yCm / 2.54;
 
         canvas.setStroke(color);
-        canvas.strokeCircle(xInches, yInches, 8); // Raio de 8 polegadas (aprox. 18x18)
+        canvas.strokeCircle(xInches, yInches, 8); // Raio de 8 polegadas (aprox. 16x16)
         double arrowX = Math.cos(headingRad) * 10; // Comprimento da seta em polegadas
         double arrowY = Math.sin(headingRad) * 10;
         double x2 = xInches + arrowX;

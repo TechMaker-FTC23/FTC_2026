@@ -3,6 +3,7 @@ package pedroPathing.examples;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
+
 import com.pedropathing.localization.Pose;
 import com.pedropathing.pathgen.BezierCurve;
 import com.pedropathing.pathgen.BezierLine;
@@ -12,7 +13,10 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.IMU;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
@@ -34,14 +38,12 @@ public class PathChainTest extends OpMode {
 
     @Override
     public void init() {
-        imu = hardwareMap.get(IMU.class, "imu");
 
+        imu = hardwareMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
         RevHubOrientationOnRobot.UsbFacingDirection usbDirection = RevHubOrientationOnRobot.UsbFacingDirection.UP;
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
-
         imu.initialize(new IMU.Parameters(orientationOnRobot));
-
         imu.resetYaw();
 
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
@@ -71,10 +73,19 @@ public class PathChainTest extends OpMode {
                 wasFollowing = false;
             }
 
-            follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
 
+            double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
-            if (gamepad1.start) {
+            double y_stick = -gamepad1.left_stick_y;
+            double x_stick = gamepad1.left_stick_x;
+            double turn_stick = -gamepad1.right_stick_x;
+
+            double rotatedX = x_stick * Math.cos(-heading) - y_stick * Math.sin(-heading);
+            double rotatedY = x_stick * Math.sin(-heading) + y_stick * Math.cos(-heading);
+
+            follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn_stick, false);
+
+            if (gamepad1.dpad_down) {
                 imu.resetYaw();
             }
 

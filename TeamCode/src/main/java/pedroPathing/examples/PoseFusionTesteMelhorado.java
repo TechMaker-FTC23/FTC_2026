@@ -1,3 +1,4 @@
+// Nome do arquivo: PoseFusionTest_Improved.java
 package pedroPathing.examples;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -21,7 +22,7 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
-import pedroPathing.util.KalmanFilter2D;
+import pedroPathing.util.KalmanFilter2D; // Certifique-se que o caminho do pacote está correto
 
 @Config
 @TeleOp
@@ -106,7 +107,7 @@ public class PoseFusionTesteMelhorado extends LinearOpMode {
             double rotY = xInput * Math.sin(-heading) + yInput * Math.cos(-heading);
 
             // Envia os vetores rotacionados para o follower em modo ROBOT-CENTRIC.
-            follower.setTeleOpMovementVectors(rotY, rotX, turnInput, true);
+            follower.setTeleOpMovementVectors(rotY, rotX, turnInput, false);
 
             // --- PLOTAGEM E TELEMETRIA ---
             // Agora, a plotagem mostrará claramente o drift da odometria (vermelho)
