@@ -9,7 +9,7 @@ public class WristSubsystem {
     private Servo wristServo1;
     private Servo wristServo2;
 
-    public static double WRIST1_UP_POS = 0.0;
+    public static double WRIST1_UP_POS = 0.3;
     public static double WRIST1_DOWN_POS = 0.3;
     public static double WRIST1_MEDIUM_POS = 0.115;
 
@@ -51,12 +51,12 @@ public class WristSubsystem {
         wrist1TargetPos = wrist1Pos;
         wrist2TargetPos = wrist2Pos;
 
-        wristServo1.setPosition(wrist1TargetPos);
+        wristServo1.setPosition(1.0 - wrist1TargetPos);
         wristServo2.setPosition(1.0 - wrist2TargetPos); // inversão para servo espelhado
     }
 
     public void updateWrist() {
-        wristServo1.setPosition(wrist1TargetPos);
+        wristServo1.setPosition(1.0 - wrist1TargetPos);
         wristServo2.setPosition(1.0 - wrist2TargetPos);
     }
 
