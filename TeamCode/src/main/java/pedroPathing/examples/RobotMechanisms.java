@@ -7,10 +7,9 @@ import com.pedropathing.follower.Follower;
 import pedroPathing.constants.FConstants;
 import pedroPathing.constants.LConstants;
 
-import pedroPathing.subsystems.ArmSubsystem;
+import pedroPathing.subsystems.WristSubsystem;
 import pedroPathing.subsystems.ClawSubsystem;
 import pedroPathing.subsystems.ElevatorSubsystem;
-@Disabled
 
 @TeleOp
 public class RobotMechanisms extends OpMode {
@@ -19,7 +18,7 @@ public class RobotMechanisms extends OpMode {
 
     // Subsistemas
     private pedroPathing.subsystems.ClawSubsystem claw;
-    private pedroPathing.subsystems.ArmSubsystem arm;
+    private pedroPathing.subsystems.WristSubsystem Wrist;
     private pedroPathing.subsystems.ElevatorSubsystem elevator;
 
     private boolean lbPreviouslyPressed = false;
@@ -29,7 +28,7 @@ public class RobotMechanisms extends OpMode {
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
 
         claw = new ClawSubsystem(hardwareMap);
-        arm = new ArmSubsystem(hardwareMap);
+        Wrist = new WristSubsystem(hardwareMap);
         elevator = new ElevatorSubsystem(hardwareMap);
 
         telemetry.addData("Status", "TeleOp Principal Inicializado");
@@ -57,25 +56,6 @@ public class RobotMechanisms extends OpMode {
         }
         lbPreviouslyPressed = gamepad1.left_bumper;
 
-        // --- Controle do Braço e Pulso (Gamepad 2) ---
-        if (gamepad2.dpad_up) {
-            arm.setArmPositionUp();
-        } else if (gamepad2.dpad_down) {
-            arm.setArmPositionDown();
-        }
-        if (gamepad2.y) {
-            arm.setWrist1PositionUp();
-            arm.setWrist2PositionUp();
-
-        } else if (gamepad2.x) {
-            arm.setWrist1PositionDown();
-            arm.setWrist2PositionDown();
-        }
-        else if (gamepad2.circle) {
-            arm.setWrist1PositionMedium();
-            arm.setWrist2PositionMedium();
-        }
-
         // Controle Manual
         if (Math.abs(gamepad2.right_stick_y) > 0.1 &&!elevator.isMovingToPreset()) {
             elevator.setManualPower(-gamepad2.right_stick_y * ElevatorSubsystem.ELEVATOR_MANUAL_SPEED);
@@ -102,10 +82,8 @@ public class RobotMechanisms extends OpMode {
         telemetry.addData("Drivetrain Pose", follower.getPose().toString());
         telemetry.addData("Claw", claw.isClawOpen()? "ABERTO" : "FECHADO");
         telemetry.addData("Claw Pos", "%.2f", claw.getClawPosition());
-        telemetry.addData("Arm1 Pos", "%.2f", arm.getArm1Position());
-        telemetry.addData("Arm2 Pos", "%.2f", arm.getArm2Position());
-        telemetry.addData("Wrist1 Pos", "%.2f", arm.getWrist1Position());
-        telemetry.addData("Wrist2 Pos", "%.2f", arm.getWrist2Position());
+        telemetry.addData("Wrist1 Pos", "%.2f", Wrist.getWrist1Position());
+        telemetry.addData("Wrist2 Pos", "%.2f", Wrist.getWrist2Position());
         telemetry.addData("Elevator Target Ticks", elevator.getTargetPosition());
         telemetry.addData("Elevator Current Ticks", elevator.getCurrentPosition());
         telemetry.addData("Elevator MovingToPreset", elevator.isMovingToPreset());
