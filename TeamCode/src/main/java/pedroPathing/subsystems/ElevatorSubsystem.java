@@ -1,51 +1,62 @@
-// Em pedroPathing.subsystems.ElevatorSubsystem.java
 package pedroPathing.subsystems;
 
+// NOVO: Importa as anotações necessárias do FTC Dashboard
 import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
-// REMOVIDO: import pedroPathing.examples.util.RobotGlobalState;
 
+
+// NOVO: Anotação que diz ao Dashboard para procurar variáveis públicas estáticas aqui
 @Config
 public class ElevatorSubsystem {
-    private DcMotorEx elevatorMotor;
+    private DcMotorEx leftMotor;
+    private DcMotorEx rightMotor;
 
-    //... (Suas constantes existentes: MAX_HEIGHT, PRESETS, PID, etc.)
-    public static final int ELEVATOR_MAX_HEIGHT_TICKS = 3000;
-    public static final double ELEVATOR_MANUAL_SPEED = 0.9;
-    public static final int ELEVATOR_PRESET_LOW = 500;
-    public static final int ELEVATOR_PRESET_MEDIUM = 1500;
-    public static final int ELEVATOR_PRESET_HIGH = ELEVATOR_MAX_HEIGHT_TICKS;
-    public static final int ELEVATOR_PRESET_GROUND = 0;
+    // --- Constantes e Ganhos PID ---
+    // Estas variáveis agora aparecerão no FTC Dashboard e poderão ser alteradas em tempo real
+
+    public static int ELEVATOR_MAX_HEIGHT_TICKS = 3000;
+    public static double ELEVATOR_MANUAL_SPEED = 0.9;
+    public static int ELEVATOR_PRESET_LOW = 500;
+    public static int ELEVATOR_PRESET_MEDIUM = 1500;
+    public static int ELEVATOR_PRESET_HIGH = 2800; // Um pouco abaixo do máximo por segurança
+    public static int ELEVATOR_PRESET_GROUND = 10; // Um pouco acima de zero para não forçar
+
+    // Ganhos PID para tuning
     public static double PID_P = 0.01;
-    public static double PID_I = 0.001;
-    public static double PID_D = 0.001;
-    public static double PID_F = 0.12; // VALOR BASE! Preciso ajeitar
+    public static double PID_I = 0.0; // É uma boa prática começar o I e D em zero
+    public static double PID_D = 0.0001;
+    public static double PID_F = 0.12; // Feedforward para segurar o elevador contra a gravidade
 
     private int targetPositionTicks;
     private boolean isPidActive = false;
-
     private ElapsedTime pidTimer = new ElapsedTime();
     private double lastError = 0;
     private double integralSum = 0;
-    private static final double MAX_INTEGRAL_SUM = 1000;
-    private static final double PID_OUTPUT_LIMIT = 0.8;
+
+    // Construtor e outros métodos continuam os mesmos da versão de 2 motores...
 
     public ElevatorSubsystem(HardwareMap hardwareMap) {
-        elevatorMotor = hardwareMap.get(DcMotorEx.class, "elevatorMotor");
-        elevatorMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // Reseta para 0
-        elevatorMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        elevatorMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+        leftMotor = hardwareMap.get(DcMotorEx.class, "leftElevatorMotor");
+        rightMotor = hardwareMap.get(DcMotorEx.class, "rightElevatorMotor");
+        rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         targetPositionTicks = 0;
     }
 
     public void goToPositionPID(int targetTicks) {
         this.targetPositionTicks = Math.max(0, Math.min(targetTicks, ELEVATOR_MAX_HEIGHT_TICKS));
         this.isPidActive = true;
-        this.integralSum = 0;
+        this.integralSum = 0; // Reseta o integral a cada novo movimento
         this.lastError = 0;
         this.pidTimer.reset();
     }
@@ -57,45 +68,48 @@ public class ElevatorSubsystem {
         if (isPidActive) {
             return;
         }
-        int currentPosition = elevatorMotor.getCurrentPosition();
-        if (power > 0 && currentPosition >= ELEVATOR_MAX_HEIGHT_TICKS) {
-            elevatorMotor.setPower(0);
-        } else if (power < 0 && currentPosition <= 0) {
-            elevatorMotor.setPower(0);
-        } else {
-            elevatorMotor.setPower(power * ELEVATOR_MANUAL_SPEED);
+        int currentPosition = leftMotor.getCurrentPosition();
+        double motorPower = power * ELEVATOR_MANUAL_SPEED;
+        if (motorPower > 0 && currentPosition >= ELEVATOR_MAX_HEIGHT_TICKS) {
+            motorPower = 0;
+        } else if (motorPower < 0 && currentPosition <= 0) {
+            motorPower = 0;
         }
+        leftMotor.setPower(motorPower);
+        rightMotor.setPower(motorPower);
     }
 
     public void update() {
         if (!isPidActive) {
             return;
         }
-        int currentPosition = elevatorMotor.getCurrentPosition();
+        int currentPosition = leftMotor.getCurrentPosition();
         double error = targetPositionTicks - currentPosition;
         double deltaTime = pidTimer.seconds();
         pidTimer.reset();
         double proportional = PID_P * error;
         integralSum += error * deltaTime;
-        integralSum = Math.max(-MAX_INTEGRAL_SUM, Math.min(integralSum, MAX_INTEGRAL_SUM));
         double integral = PID_I * integralSum;
         double derivative = 0;
         if (deltaTime > 0) {
             derivative = PID_D * (error - lastError) / deltaTime;
         }
         lastError = error;
-        double feedforward = PID_F;
+        // O Feedforward é constante para combater a gravidade
+        double feedforward = (targetPositionTicks > 5) ? PID_F : 0;
         double outputPower = proportional + integral + derivative + feedforward;
-        outputPower = Math.max(-PID_OUTPUT_LIMIT, Math.min(outputPower, PID_OUTPUT_LIMIT));
-        elevatorMotor.setPower(outputPower);
+        leftMotor.setPower(outputPower);
+        rightMotor.setPower(outputPower);
     }
 
+    // ... (stopMotor, getters, etc. continuam iguais)
     public void stopMotor() {
-        elevatorMotor.setPower(0);
+        leftMotor.setPower(0);
+        rightMotor.setPower(0);
         isPidActive = false;
     }
 
-    public int getCurrentPosition() { return elevatorMotor.getCurrentPosition(); }
+    public int getCurrentPosition() { return leftMotor.getCurrentPosition(); }
     public int getTargetPosition() { return targetPositionTicks; }
     public boolean isMovingToPreset() { return isPidActive; }
 }
