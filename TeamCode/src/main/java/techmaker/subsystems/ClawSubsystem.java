@@ -23,11 +23,12 @@ public class ClawSubsystem {
     public static final String RIGHT_CLAW_ARM_NAME = "rightclawarm";
     public static double maxClaw = 0.65;
     public static double minClaw = 0.4;
-
     public static double maxArmL = 0;
     public static double minArmL = 0.45;
     public static double maxArmR = 1.;
     public static double minArmR = 0.55;
+    public static double medArmR = 0;
+    public static double medArml = 1.;
     public static double maxWristL = .15;
     public static double minWristL = 1.;
     public static double maxWristR = 0.85;
