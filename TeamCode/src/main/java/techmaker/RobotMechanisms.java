@@ -67,6 +67,25 @@ public class RobotMechanisms extends OpMode {
             intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN,IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN);
         }
 
+        if(gamepad1.dpad_down){
+            claw.clawArm(ClawSubsystem.maxArmL,ClawSubsystem.maxArmR);
+        }
+        else{
+            claw.clawArm(ClawSubsystem.minArmL,ClawSubsystem.minArmR);
+        }
+        if(gamepad1.square){
+            claw.clawWrist(ClawSubsystem.maxWristL,ClawSubsystem.maxWristR);
+        }
+        else{
+            claw.clawWrist(ClawSubsystem.minWristL,ClawSubsystem.minWristR);
+        }
+        if(gamepad1.triangle){
+            claw.middleClaw(ClawSubsystem.maxClaw);
+        }
+        else{
+            claw.middleClaw(ClawSubsystem.minClaw);
+        }
+
         claw.update(telemetry);
         //elevator.update(telemetry);
         intake.update(telemetry);
