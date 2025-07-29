@@ -80,8 +80,8 @@ public class IntakeSubsystem {
     }
       public void reverseIntake() {
         isIntakeActive = true;
-        leftIntake.setPower(1);
-        rightIntake.setPower(1);
+        leftIntake.setPower(-1);
+        rightIntake.setPower(-1);
 
     }
 
