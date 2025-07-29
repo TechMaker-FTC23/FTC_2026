@@ -23,8 +23,8 @@ public class IntakeSubsystem {
     public static final String LEFT_INTAKE_SLIDER_NAME = "leftIntakeSlider";
     public static final String RIGHT_INTAKE_SLIDER_NAME = "rightIntakeSlider";
 
-    public static double LEFT_INTAKE_WRIST_MAX = 1;
-    public static double RIGHT_INTAKE_WRIST_MAX = 0;
+    public static double LEFT_INTAKE_WRIST_MAX = 0.9;
+    public static double RIGHT_INTAKE_WRIST_MAX = 0.1;
     public static double LEFT_INTAKE_SLIDER_MAX = 0.75;
     public static double RIGHT_INTAKE_SLIDER_MAX = 0.25;
     public static double LEFT_INTAKE_WRIST_MIN = 0.3;
@@ -102,6 +102,10 @@ public class IntakeSubsystem {
         rightIntakeSlider.setPosition(valueR);
     }
 
+    public void intakeWrist(double LEFT_INTAKE_WRIST_MIN, double RIGHT_INTAKE_WRIST_MIN) {
+        leftIntakeWrist.setPosition(LEFT_INTAKE_WRIST_MIN);
+        rightIntakeWrist.setPosition(RIGHT_INTAKE_WRIST_MIN);
+    }
 
 
 

@@ -4,27 +4,29 @@ import static techmaker.subsystems.IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.pedropathing.follower.Follower;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
-
 import techmaker.subsystems.ClawSubsystem;
 import techmaker.subsystems.ElevatorSubsystem;
 import techmaker.subsystems.IntakeSubsystem;
+import techmaker.util.StateMachine;
 
-@TeleOp(name = "Controle Principal do Robô", group = "PedroPathing")
-public class RobotMechanisms extends OpMode {
-
+@TeleOp(name = "TeleOp geral")
+public class TeleOP extends OpMode {
     private ClawSubsystem claw;
     private ElevatorSubsystem elevator;
     private IntakeSubsystem intake;
     private Follower follower;
     private final Pose startPose = new Pose(0, 0, 0);
-
+    private StateMachine state = StateMachine.IDLE;
+    private final ElapsedTime timer = new ElapsedTime();
+    private long timeout = 0;
     @Override
     public void init() {
 
@@ -59,54 +61,37 @@ public class RobotMechanisms extends OpMode {
                 -gamepad1.right_stick_x,
                 false
         );
+
+        if(gamepad2.triangle && state == StateMachine.IDLE){
+            state = StateMachine.START_INTAKE;
+            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX,IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
+            timeout = 120;
+            timer.reset();
+        }
+        if(gamepad2.circle && state == StateMachine.INTAKING){
+            state = StateMachine.RETURNING_INTAKE;
+            intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
+            intake.stopIntake();
+            timeout = 120;
+            timer.reset();
+
+        }
+        if(timer.milliseconds()>timeout){
+            if(state==StateMachine.START_INTAKE){
+                intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
+                intake.startIntake();
+                state = StateMachine.INTAKING;
+            }
+            if(state==StateMachine.RETURNING_INTAKE){
+                intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN,IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN);
+                state = StateMachine.IDLE;
+
+            }
+        }
+
+
+
         follower.update();
-
-        // Controles do intake
-        if (gamepad2.dpad_right) {
-            intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
-        }
-        if (gamepad2.dpad_left) {
-            intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, RIGHT_INTAKE_WRIST_MIN);
-            intake.stopIntake();
-        }
-        if (gamepad2.left_stick_x > 0.5) {
-            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
-        } else if (gamepad2.left_stick_x < -0.5) {
-            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN);
-        }
-        if (gamepad2.triangle){
-            intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX,IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
-            intake.startIntake();
-        } else if (gamepad2.right_bumper) {
-            claw.middleClaw(ClawSubsystem.maxClaw);
-        } else {
-            intake.stopIntake();
-        }
-
-        // Controles da garra
-        if (gamepad2.dpad_down) {
-            claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
-            claw.clawWrist(ClawSubsystem.medWristl, ClawSubsystem.medWristR);
-
-        }
-        if (gamepad2.dpad_up) {
-            claw.clawArm(ClawSubsystem.maxArmL, ClawSubsystem.maxArmR);
-            claw.clawWrist(ClawSubsystem.maxWristL, ClawSubsystem.maxWristR);
-            intake.reverseIntake();
-
-        }
-
-        if (gamepad2.left_bumper) {
-            claw.middleClaw(ClawSubsystem.minClaw);
-        }
-
-        // Controles do elevador com presets
-        if (gamepad2.right_trigger > 0.5) {
-            elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
-        } else if (gamepad2.left_trigger > 0.5) {
-            elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
-        }
-
         claw.update(telemetry);
         elevator.update(telemetry);
         intake.update(telemetry);

@@ -23,16 +23,18 @@ public class ClawSubsystem {
     public static final String RIGHT_CLAW_ARM_NAME = "rightclawarm";
     public static double maxClaw = 0.65;
     public static double minClaw = 0.4;
-    public static double maxArmL = 0;
+    public static double maxArmL = 0.12;
     public static double minArmL = 0.45;
-    public static double maxArmR = 1.;
+    public static double maxArmR = 0.88;
     public static double minArmR = 0.55;
-    public static double medArmR = 0;
-    public static double medArml = 1.;
-    public static double maxWristL = .15;
-    public static double minWristL = 1.;
-    public static double maxWristR = 0.85;
-    public static double minWristR = 0.;
+    public static double medArmR = 0.2;
+    public static double medArml = 0.8;
+    public static double medWristR = 0.2;
+    public static double medWristl = 0.8;
+    public static double maxWristL = 0.65;
+    public static double minWristL = 0.7;
+    public static double maxWristR = 0.35;
+    public static double minWristR = 0.3;
 
 
     // --- Declarações de Hardware ---
