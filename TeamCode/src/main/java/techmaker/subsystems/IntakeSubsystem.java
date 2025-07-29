@@ -1,16 +1,15 @@
+// Arquivo: techmaker/subsystems/IntakeSubsystem.java
+
 package techmaker.subsystems;
 
 import androidx.annotation.NonNull;
-
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-
 import java.util.concurrent.TimeUnit;
 
 @Config
@@ -46,29 +45,30 @@ public class IntakeSubsystem {
     private boolean isRedAlliance = false;
 
     public IntakeSubsystem(@NonNull HardwareMap hardwareMap, boolean isRedAlliance) {
-        // Mapeamento do hardware usando as constantes
         leftIntake = hardwareMap.get(CRServo.class, LEFT_INTAKE_NAME);
         rightIntake = hardwareMap.get(CRServo.class, RIGHT_INTAKE_NAME);
         leftIntakeWrist = hardwareMap.get(Servo.class, LEFT_INTAKE_WRIST_NAME);
         rightIntakeWrist = hardwareMap.get(Servo.class, RIGHT_INTAKE_WRIST_NAME);
         leftIntakeSlider = hardwareMap.get(Servo.class, LEFT_INTAKE_SLIDER_NAME);
         rightIntakeSlider = hardwareMap.get(Servo.class, RIGHT_INTAKE_SLIDER_NAME);
-        colorSensor = hardwareMap.get(ColorSensor.class, COLOR_SENSOR_NAME);
+
+        // Lógica do sensor desativada com segurança
+        colorSensor = null;
+
         this.isRedAlliance = isRedAlliance;
-        // Configuração inicial dos mecanismos
-        leftIntake.setDirection(CRServo.Direction.REVERSE); // Essencial para a garra diferencial
+        leftIntake.setDirection(CRServo.Direction.REVERSE);
         timer.reset();
-
-
-        stopIntake(); // Boa prática: garantir que o intake comece parado
+        stopIntake();
     }
 
     public void update(Telemetry telemetry) {
         if (timer.time(TimeUnit.MILLISECONDS) > 20) {
             timer.reset();
-            telemetry.addData("Red", colorSensor.red());
-            telemetry.addData("Blue", colorSensor.blue());
-            telemetry.addData("Green", colorSensor.green());
+            if (colorSensor != null) { // Checagem para evitar erro
+                telemetry.addData("Red", colorSensor.red());
+                telemetry.addData("Blue", colorSensor.blue());
+                telemetry.addData("Green", colorSensor.green());
+            }
         }
     }
 
@@ -76,13 +76,12 @@ public class IntakeSubsystem {
         isIntakeActive = true;
         leftIntake.setPower(1);
         rightIntake.setPower(1);
-
     }
-      public void reverseIntake() {
-        isIntakeActive = true;
-        leftIntake.setPower(-1);
-        rightIntake.setPower(-1);
 
+    public void reverseIntake() {
+        isIntakeActive = true;
+        leftIntake.setPower(-1); // Potência negativa para reverter
+        rightIntake.setPower(-1);
     }
 
     public void stopIntake() {
@@ -90,21 +89,14 @@ public class IntakeSubsystem {
         leftIntake.setPower(0);
         rightIntake.setPower(0);
     }
+
     public void wrist(double valueL, double valueR) {
         rightIntakeWrist.setPosition(valueR);
         leftIntakeWrist.setPosition(valueL);
     }
 
-
-
     public void slider(double valueL, double valueR) {
         leftIntakeSlider.setPosition(valueL);
         rightIntakeSlider.setPosition(valueR);
     }
-
-
-
-
-
 }
-
