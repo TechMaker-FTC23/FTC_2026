@@ -38,6 +38,8 @@ public class RobotMechanisms extends OpMode {
         claw = new ClawSubsystem(hardwareMap);
         //elevator = new ElevatorSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap, false);
+        claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
+
 
         telemetry.addData("Status", "TeleOp Principal Inicializado");
         telemetry.addData("Dashboard", "Conecte-se em 192.168.43.1:8080");
@@ -70,16 +72,10 @@ public class RobotMechanisms extends OpMode {
         }
 
         if(gamepad1.dpad_down){
-            claw.clawArm(ClawSubsystem.medArml,ClawSubsystem.medArmR);
-        }
-        else{
             claw.clawArm(ClawSubsystem.minArmL,ClawSubsystem.minArmR);
         }
         if(gamepad1.dpad_up){
             claw.clawArm(ClawSubsystem.maxArmL,ClawSubsystem.maxArmR);
-        }
-        else{
-            claw.clawArm(ClawSubsystem.minArmL,ClawSubsystem.minArmR);
         }
         if(gamepad1.square){
             claw.clawWrist(ClawSubsystem.maxWristL,ClawSubsystem.maxWristR);
@@ -89,8 +85,9 @@ public class RobotMechanisms extends OpMode {
         }
         if(gamepad1.triangle){
             claw.middleClaw(ClawSubsystem.maxClaw);
+            intake.reverseIntake();
         }
-        else{
+        if (gamepad2.left_bumper){
             claw.middleClaw(ClawSubsystem.minClaw);
         }
 
