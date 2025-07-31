@@ -3,7 +3,6 @@ package techmaker.examples;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
-
 import com.pedropathing.localization.Pose;
 import com.pedropathing.pathgen.BezierCurve;
 import com.pedropathing.pathgen.BezierLine;
@@ -14,21 +13,18 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.IMU;
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
-@Disabled
 
+@Disabled
 @TeleOp
 public class PathChainTest extends OpMode {
     private Telemetry telemetryA;
     private PathChain pathChain;
     private Follower follower;
     private IMU imu;
-    int path = 1;
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
     private final Pose StarPose = new Pose(1, 0, Math.toRadians(0));
     private final Pose Começo = new Pose(2, 0, Math.toRadians(0));
@@ -40,7 +36,6 @@ public class PathChainTest extends OpMode {
 
     @Override
     public void init() {
-
         imu = hardwareMap.get(IMU.class, "imu");
         RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
         RevHubOrientationOnRobot.UsbFacingDirection usbDirection = RevHubOrientationOnRobot.UsbFacingDirection.UP;
@@ -75,12 +70,11 @@ public class PathChainTest extends OpMode {
                 wasFollowing = false;
             }
 
-
-            double heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-
             double y_stick = -gamepad1.left_stick_y;
             double x_stick = gamepad1.left_stick_x;
             double turn_stick = -gamepad1.right_stick_x;
+
+            double heading = follower.poseUpdater.getPose().getHeading();
 
             double rotatedX = x_stick * Math.cos(-heading) - y_stick * Math.sin(-heading);
             double rotatedY = x_stick * Math.sin(-heading) + y_stick * Math.cos(-heading);
@@ -89,6 +83,7 @@ public class PathChainTest extends OpMode {
 
             if (gamepad1.dpad_down) {
                 imu.resetYaw();
+                follower.setPose(new Pose(follower.getPose().getX(), follower.getPose().getY(), 0));
             }
 
             if (gamepad1.square) {

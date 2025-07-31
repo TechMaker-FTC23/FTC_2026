@@ -44,7 +44,7 @@ public class TeleOP extends OpMode {
         claw.clawWrist(ClawSubsystem.minWristL, ClawSubsystem.minWristR);
         claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
         intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, RIGHT_INTAKE_WRIST_MIN);
-        intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, RIGHT_INTAKE_SLIDER_MIN);
+        intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, RIGHT_INTAKE_SLIDER_MIN);
 
 
         telemetry.addData("Status", "TeleOp Principal Inicializado");
@@ -125,6 +125,39 @@ public class TeleOP extends OpMode {
                     claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
                     intake.stopIntake();
                     stateClawSample = StateMachine.CLAW_SPECIMENT;
+                }
+            }
+            // Dispara ciclo automático com botão X
+            if (gamepad2.x && state == StateMachine.IDLE) {
+                state = StateMachine.AUTO_CYCLE_START;
+                intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
+                timeout = 200;
+                timer.reset();
+            }
+
+// Sequência automatizada
+            if (timer.milliseconds() > timeout) {
+                if (state == StateMachine.AUTO_CYCLE_START) {
+                    intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
+                    intake.startIntake();
+                    state = StateMachine.AUTO_INTAKING;
+                    timeout = 400;
+                    timer.reset();
+                } else if (state == StateMachine.AUTO_INTAKING) {
+                    claw.middleClaw(ClawSubsystem.maxClaw);
+                    intake.reverseIntake();
+                    claw.clawWrist(ClawSubsystem.maxWristL, ClawSubsystem.maxWristR);
+                    state = StateMachine.AUTO_GRAB;
+                    timeout = 200;
+                    timer.reset();
+                } else if (state == StateMachine.AUTO_GRAB) {
+                    intake.stopIntake();
+                    claw.clawArm(ClawSubsystem.maxArmL, ClawSubsystem.maxArmR);
+                    state = StateMachine.AUTO_RAISE;
+                    timeout = 200;
+                    timer.reset();
+                } else if (state == StateMachine.AUTO_RAISE) {
+                    state = StateMachine.IDLE;
                 }
             }
         }
