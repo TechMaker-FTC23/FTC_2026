@@ -1,5 +1,6 @@
 package techmaker;
 
+import static techmaker.subsystems.IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN;
 import static techmaker.subsystems.IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -25,6 +26,7 @@ public class TeleOP extends OpMode {
     private Follower follower;
     private final Pose startPose = new Pose(0, 0, 0);
     private StateMachine state = StateMachine.IDLE;
+    private StateMachine stateClawSample = StateMachine.CLAW_SPECIMENT;
     private final ElapsedTime timer = new ElapsedTime();
     private long timeout = 0;
     @Override
@@ -42,6 +44,8 @@ public class TeleOP extends OpMode {
         claw.clawWrist(ClawSubsystem.minWristL, ClawSubsystem.minWristR);
         claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
         intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, RIGHT_INTAKE_WRIST_MIN);
+        intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, RIGHT_INTAKE_SLIDER_MIN);
+
 
         telemetry.addData("Status", "TeleOp Principal Inicializado");
         telemetry.addData("Dashboard", "Conecte-se em 192.168.43.1:8080");
@@ -65,14 +69,14 @@ public class TeleOP extends OpMode {
         if(gamepad2.triangle && state == StateMachine.IDLE){
             state = StateMachine.START_INTAKE;
             intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX,IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
-            timeout = 120;
+            timeout = 40;
             timer.reset();
         }
         if(gamepad2.circle && state == StateMachine.INTAKING){
             state = StateMachine.RETURNING_INTAKE;
             intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
             intake.stopIntake();
-            timeout = 120;
+            timeout = 40;
             timer.reset();
 
         }
@@ -87,9 +91,43 @@ public class TeleOP extends OpMode {
                 state = StateMachine.IDLE;
 
             }
+            if (gamepad2.right_bumper && stateClawSample == StateMachine.CLAW_SPECIMENT) {
+                stateClawSample = StateMachine.CLAW_SAMPLE;
+
+                claw.middleClaw(ClawSubsystem.maxClaw);
+                timeout = 40;
+                timer.reset();
+            }
+
+            if (timer.milliseconds() > timeout) {
+                if (stateClawSample == StateMachine.CLAW_SAMPLE) {
+                    intake.reverseIntake();
+                    stateClawSample = StateMachine.DELIVER_SAMPLE;
+                    timeout = 40;
+                    timer.reset();
+
+                } else if (stateClawSample == StateMachine.DELIVER_SAMPLE) {
+                    claw.clawArm(ClawSubsystem.maxArmL, ClawSubsystem.maxArmR);
+                    intake.stopIntake();
+                    stateClawSample = StateMachine.DELIVERY_SPECIMENT;
+                }
+            }
+
+            if (gamepad2.left_bumper && stateClawSample == StateMachine.DELIVERY_SPECIMENT) {
+                claw.middleClaw(ClawSubsystem.minClaw);
+                stateClawSample = StateMachine.CLAW_RETRACT;
+                timeout = 40;
+                timer.reset();
+            }
+
+            if (timer.milliseconds() > timeout) {
+                if (stateClawSample == StateMachine.CLAW_RETRACT) {
+                    claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
+                    intake.stopIntake();
+                    stateClawSample = StateMachine.CLAW_SPECIMENT;
+                }
+            }
         }
-
-
 
         follower.update();
         claw.update(telemetry);

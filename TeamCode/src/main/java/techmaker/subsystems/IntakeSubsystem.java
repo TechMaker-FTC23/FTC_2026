@@ -25,12 +25,12 @@ public class IntakeSubsystem {
 
     public static double LEFT_INTAKE_WRIST_MAX = 0.9;
     public static double RIGHT_INTAKE_WRIST_MAX = 0.1;
-    public static double LEFT_INTAKE_SLIDER_MAX = 0.75;
-    public static double RIGHT_INTAKE_SLIDER_MAX = 0.25;
+    public static double LEFT_INTAKE_SLIDER_MAX = 0.6;
+    public static double RIGHT_INTAKE_SLIDER_MAX = 0.4;
     public static double LEFT_INTAKE_WRIST_MIN = 0.3;
     public static double RIGHT_INTAKE_WRIST_MIN = 0.7;
-    public static double LEFT_INTAKE_SLIDER_MIN = 1;
-    public static double RIGHT_INTAKE_SLIDER_MIN = 0;
+    public static double LEFT_INTAKE_SLIDER_MIN = 0.9;
+    public static double RIGHT_INTAKE_SLIDER_MIN = 0.1;
 
     public static final String COLOR_SENSOR_NAME = "colorSensor";
 
@@ -55,12 +55,11 @@ public class IntakeSubsystem {
         rightIntakeSlider = hardwareMap.get(Servo.class, RIGHT_INTAKE_SLIDER_NAME);
         colorSensor = hardwareMap.get(ColorSensor.class, COLOR_SENSOR_NAME);
         this.isRedAlliance = isRedAlliance;
-        // Configuração inicial dos mecanismos
-        leftIntake.setDirection(CRServo.Direction.REVERSE); // Essencial para a garra diferencial
+        leftIntake.setDirection(CRServo.Direction.REVERSE);
         timer.reset();
 
 
-        stopIntake(); // Boa prática: garantir que o intake comece parado
+        stopIntake();
     }
 
     public void update(Telemetry telemetry) {

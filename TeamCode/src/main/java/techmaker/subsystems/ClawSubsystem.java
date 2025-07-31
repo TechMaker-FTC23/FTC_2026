@@ -10,12 +10,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import java.util.concurrent.TimeUnit;
 
 @Config
-// ALTERADO: O nome da classe agora descreve melhor sua função completa.
 public class ClawSubsystem {
 
-    // --- Constantes ---
-
-    // NOVO: Constantes para os nomes do hardware. Evita erros de digitação e facilita a manutenção.
     public static final String MIDDLE_CLAW_SERVO_NAME = "middleclaw";
     public static final String LEFT_CLAW_WRIST_NAME = "leftclaw";
     public static final String RIGHT_CLAW_WRIST_NAME = "rightclaw";
@@ -36,8 +32,6 @@ public class ClawSubsystem {
     public static double maxWristR = 0.35;
     public static double minWristR = 0.3;
 
-
-    // --- Declarações de Hardware ---
     private final Servo middleClawServo;
     private final Servo leftClawWrist;
     private final Servo rightClawWrist;
