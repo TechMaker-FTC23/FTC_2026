@@ -25,8 +25,8 @@ public class ClawSubsystem {
     public static double minArmR = 0.55;
     public static double medArmR = 0.2;
     public static double medArml = 0.8;
-    public static double medWristR = 0.2;
-    public static double medWristl = 0.8;
+    public static double medWristR = 0.24;
+    public static double medWristl = 0.76;
     public static double maxWristL = 0.65;
     public static double minWristL = 0.7;
     public static double maxWristR = 0.35;

@@ -29,8 +29,8 @@ public class IntakeSubsystem {
     public static double RIGHT_INTAKE_SLIDER_MAX = 0.4;
     public static double LEFT_INTAKE_WRIST_MIN = 0.3;
     public static double RIGHT_INTAKE_WRIST_MIN = 0.7;
-    public static double LEFT_INTAKE_SLIDER_MIN = 0.9;
-    public static double RIGHT_INTAKE_SLIDER_MIN = 0.1;
+    public static double LEFT_INTAKE_SLIDER_MIN = 0.8;
+    public static double RIGHT_INTAKE_SLIDER_MIN = 0.2;
 
     public static final String COLOR_SENSOR_NAME = "colorSensor";
 
@@ -44,6 +44,8 @@ public class IntakeSubsystem {
     private final ElapsedTime timer = new ElapsedTime();
     private boolean isIntakeActive = false;
     private boolean isRedAlliance = false;
+    private double lastLeftSliderPos = LEFT_INTAKE_SLIDER_MIN;
+    private double lastRightSliderPos = RIGHT_INTAKE_SLIDER_MIN;
 
     public IntakeSubsystem(@NonNull HardwareMap hardwareMap, boolean isRedAlliance) {
         // Mapeamento do hardware usando as constantes
@@ -96,9 +98,11 @@ public class IntakeSubsystem {
 
 
 
-    public void slider(double valueL, double valueR) {
-        leftIntakeSlider.setPosition(valueL);
-        rightIntakeSlider.setPosition(valueR);
+    public void slider(double left, double right) {
+        leftIntakeSlider.setPosition(left);
+        rightIntakeSlider.setPosition(right);
+        lastLeftSliderPos = left;
+        lastRightSliderPos = right;
     }
 
     public void intakeWrist(double LEFT_INTAKE_WRIST_MIN, double RIGHT_INTAKE_WRIST_MIN) {
@@ -106,8 +110,9 @@ public class IntakeSubsystem {
         rightIntakeWrist.setPosition(RIGHT_INTAKE_WRIST_MIN);
     }
 
-
-
-
+    public void maintainSliderPosition() {
+        leftIntakeSlider.setPosition(lastLeftSliderPos);
+        rightIntakeSlider.setPosition(lastRightSliderPos);
+    }
 }
 

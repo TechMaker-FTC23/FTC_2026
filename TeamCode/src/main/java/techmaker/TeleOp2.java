@@ -28,6 +28,8 @@ public class TeleOp2 extends OpMode {
     private final ElapsedTime timer = new ElapsedTime();
     private long timeout = 0;
 
+    private double headingOffset = 0;
+
     @Override
     public void init() {
         telemetry = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -39,8 +41,9 @@ public class TeleOp2 extends OpMode {
         elevator = new ElevatorSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap, false);
 
-        claw.clawWrist(ClawSubsystem.minWristL, ClawSubsystem.minWristR);
+        claw.clawWrist(ClawSubsystem.medWristl, ClawSubsystem.medWristR);
         claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
+        claw.middleClaw(ClawSubsystem.minClaw);
         intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
         intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN);
 
@@ -52,47 +55,53 @@ public class TeleOp2 extends OpMode {
     public void start() {
         follower.startTeleopDrive();
         timer.reset();
+        headingOffset = follower.poseUpdater.getPose().getHeading();
     }
 
     @Override
     public void loop() {
-        double y_stick = -gamepad1.left_stick_y;
+        double y_stick = gamepad1.left_stick_y;
         double x_stick = gamepad1.left_stick_x;
         double turn_stick = -gamepad1.right_stick_x;
-        double heading = follower.poseUpdater.getPose().getHeading();
+
+        double rawHeading = follower.poseUpdater.getPose().getHeading();
+        double heading = normalizeAngle(rawHeading - headingOffset);
+
         double rotatedX = x_stick * Math.cos(-heading) - y_stick * Math.sin(-heading);
         double rotatedY = x_stick * Math.sin(-heading) + y_stick * Math.cos(-heading);
+
         follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn_stick, false);
+        intake.maintainSliderPosition();
 
         if (gamepad2.triangle && state == StateMachine.IDLE) {
             state = StateMachine.START_INTAKE;
             intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
-            timeout = 200;
+            timeout = 100;
             timer.reset();
         } else if (gamepad2.circle && state == StateMachine.INTAKING) {
             state = StateMachine.RETURNING_INTAKE;
             intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
             intake.stopIntake();
-            timeout = 200;
+            timeout = 100;
             timer.reset();
         }
 
         if (gamepad2.right_bumper && stateClawSample == StateMachine.CLAW_SPECIMENT) {
             stateClawSample = StateMachine.CLAW_SAMPLE;
             claw.middleClaw(ClawSubsystem.maxClaw);
-            timeout = 200;
+            timeout = 100;
             timer.reset();
         } else if (gamepad2.left_bumper && stateClawSample == StateMachine.DELIVERY_SPECIMENT) {
             stateClawSample = StateMachine.CLAW_RETRACT;
             claw.middleClaw(ClawSubsystem.minClaw);
-            timeout = 200;
+            timeout = 100;
             timer.reset();
         }
 
-        if (gamepad2.x && state == StateMachine.IDLE) {
+        if (gamepad2.cross && state == StateMachine.IDLE) {
             state = StateMachine.AUTO_CYCLE_START;
             intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
-            timeout = 200;
+            timeout = 100;
             timer.reset();
         }
 
@@ -129,6 +138,7 @@ public class TeleOp2 extends OpMode {
 
             if (stateClawSample == StateMachine.CLAW_SAMPLE) {
                 intake.reverseIntake();
+                elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_MEDIUM);
                 stateClawSample = StateMachine.DELIVER_SAMPLE;
                 timeout = 200;
                 timer.reset();
@@ -138,6 +148,7 @@ public class TeleOp2 extends OpMode {
                 stateClawSample = StateMachine.DELIVERY_SPECIMENT;
             } else if (stateClawSample == StateMachine.CLAW_RETRACT) {
                 claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
+                elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
                 intake.stopIntake();
                 stateClawSample = StateMachine.CLAW_SPECIMENT;
             }
@@ -150,5 +161,11 @@ public class TeleOp2 extends OpMode {
         telemetry.addData("Main State", state);
         telemetry.addData("Claw State", stateClawSample);
         telemetry.update();
+    }
+
+    private double normalizeAngle(double angle) {
+        while (angle > Math.PI) angle -= 2 * Math.PI;
+        while (angle < -Math.PI) angle += 2 * Math.PI;
+        return angle;
     }
 }

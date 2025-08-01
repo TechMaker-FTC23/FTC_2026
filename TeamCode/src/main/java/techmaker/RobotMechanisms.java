@@ -40,6 +40,7 @@ public class RobotMechanisms extends OpMode {
         claw.clawWrist(ClawSubsystem.minWristL, ClawSubsystem.minWristR);
         claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
         intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, RIGHT_INTAKE_WRIST_MIN);
+        intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN);
 
         telemetry.addData("Status", "TeleOp Principal Inicializado");
         telemetry.addData("Dashboard", "Conecte-se em 192.168.43.1:8080");
@@ -102,7 +103,7 @@ public class RobotMechanisms extends OpMode {
 
         // Controles do elevador com presets
         if (gamepad2.right_trigger > 0.5) {
-            elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+            elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_MEDIUM);
         } else if (gamepad2.left_trigger > 0.5) {
             elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
         }
