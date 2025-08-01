@@ -22,17 +22,21 @@ public class IntakeSubsystem {
     public static final String RIGHT_INTAKE_WRIST_NAME = "rightIntakeWrist";
     public static final String LEFT_INTAKE_SLIDER_NAME = "leftIntakeSlider";
     public static final String RIGHT_INTAKE_SLIDER_NAME = "rightIntakeSlider";
+    public static final String COLOR_SENSOR_NAME = "colorSensor";
 
     public static double LEFT_INTAKE_WRIST_MAX = 0.9;
     public static double RIGHT_INTAKE_WRIST_MAX = 0.1;
     public static double LEFT_INTAKE_SLIDER_MAX = 0.6;
     public static double RIGHT_INTAKE_SLIDER_MAX = 0.4;
+
     public static double LEFT_INTAKE_WRIST_MIN = 0.3;
     public static double RIGHT_INTAKE_WRIST_MIN = 0.7;
     public static double LEFT_INTAKE_SLIDER_MIN = 0.8;
     public static double RIGHT_INTAKE_SLIDER_MIN = 0.2;
 
-    public static final String COLOR_SENSOR_NAME = "colorSensor";
+
+    public static double LEFT_INTAKE_SLIDER_MED = (LEFT_INTAKE_SLIDER_MIN + LEFT_INTAKE_SLIDER_MAX) / 2.0;
+    public static double RIGHT_INTAKE_SLIDER_MED = (RIGHT_INTAKE_SLIDER_MIN + RIGHT_INTAKE_SLIDER_MAX) / 2.0;
 
     private final CRServo leftIntake;
     private final CRServo rightIntake;
@@ -42,13 +46,12 @@ public class IntakeSubsystem {
     private final Servo rightIntakeSlider;
     private final ColorSensor colorSensor;
     private final ElapsedTime timer = new ElapsedTime();
-    private boolean isIntakeActive = false;
     private boolean isRedAlliance = false;
+
     private double lastLeftSliderPos = LEFT_INTAKE_SLIDER_MIN;
     private double lastRightSliderPos = RIGHT_INTAKE_SLIDER_MIN;
 
     public IntakeSubsystem(@NonNull HardwareMap hardwareMap, boolean isRedAlliance) {
-        // Mapeamento do hardware usando as constantes
         leftIntake = hardwareMap.get(CRServo.class, LEFT_INTAKE_NAME);
         rightIntake = hardwareMap.get(CRServo.class, RIGHT_INTAKE_NAME);
         leftIntakeWrist = hardwareMap.get(Servo.class, LEFT_INTAKE_WRIST_NAME);
@@ -59,7 +62,6 @@ public class IntakeSubsystem {
         this.isRedAlliance = isRedAlliance;
         leftIntake.setDirection(CRServo.Direction.REVERSE);
         timer.reset();
-
 
         stopIntake();
     }
@@ -74,45 +76,48 @@ public class IntakeSubsystem {
     }
 
     public void startIntake() {
-        isIntakeActive = true;
         leftIntake.setPower(1);
         rightIntake.setPower(1);
-
     }
-      public void reverseIntake() {
-        isIntakeActive = true;
+
+    public void reverseIntake() {
         leftIntake.setPower(-1);
         rightIntake.setPower(-1);
-
     }
 
     public void stopIntake() {
-        isIntakeActive = false;
         leftIntake.setPower(0);
         rightIntake.setPower(0);
     }
-    public void wrist(double valueL, double valueR) {
+
+    public void intakeWrist(double valueL, double valueR) {
         rightIntakeWrist.setPosition(valueR);
         leftIntakeWrist.setPosition(valueL);
     }
 
-
-
-    public void slider(double left, double right) {
+    private void slider(double left, double right) {
         leftIntakeSlider.setPosition(left);
         rightIntakeSlider.setPosition(right);
         lastLeftSliderPos = left;
         lastRightSliderPos = right;
     }
 
-    public void intakeWrist(double LEFT_INTAKE_WRIST_MIN, double RIGHT_INTAKE_WRIST_MIN) {
-        leftIntakeWrist.setPosition(LEFT_INTAKE_WRIST_MIN);
-        rightIntakeWrist.setPosition(RIGHT_INTAKE_WRIST_MIN);
+    public void sliderMin() {
+        slider(LEFT_INTAKE_SLIDER_MIN, RIGHT_INTAKE_SLIDER_MIN);
     }
+
+    public void sliderMedium() {
+        slider(LEFT_INTAKE_SLIDER_MED, RIGHT_INTAKE_SLIDER_MED);
+    }
+
+
+    public void sliderMax() {
+        slider(LEFT_INTAKE_SLIDER_MAX, RIGHT_INTAKE_SLIDER_MAX);
+    }
+
 
     public void maintainSliderPosition() {
         leftIntakeSlider.setPosition(lastLeftSliderPos);
         rightIntakeSlider.setPosition(lastRightSliderPos);
     }
 }
-
