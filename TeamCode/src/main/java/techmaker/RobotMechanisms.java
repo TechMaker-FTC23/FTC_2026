@@ -40,7 +40,7 @@ public class RobotMechanisms extends OpMode {
         claw.clawWrist(ClawSubsystem.minWristL, ClawSubsystem.minWristR);
         claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
         intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, RIGHT_INTAKE_WRIST_MIN);
-        intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN);
+        intake.sliderMin();
 
         telemetry.addData("Status", "TeleOp Principal Inicializado");
         telemetry.addData("Dashboard", "Conecte-se em 192.168.43.1:8080");
@@ -64,16 +64,16 @@ public class RobotMechanisms extends OpMode {
 
         // Controles do intake
         if (gamepad2.dpad_right) {
-            intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
+            intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
         }
         if (gamepad2.dpad_left) {
-            intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, RIGHT_INTAKE_WRIST_MIN);
+            intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, RIGHT_INTAKE_WRIST_MIN);
             intake.stopIntake();
         }
         if (gamepad2.left_stick_x > 0.5) {
-            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
+            intake.sliderMax();
         } else if (gamepad2.left_stick_x < -0.5) {
-            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN);
+            intake.sliderMin();
         }
         if (gamepad2.triangle){
             intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX,IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
