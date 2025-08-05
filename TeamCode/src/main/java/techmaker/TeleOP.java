@@ -7,6 +7,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -17,7 +18,7 @@ import techmaker.subsystems.ClawSubsystem;
 import techmaker.subsystems.ElevatorSubsystem;
 import techmaker.subsystems.IntakeSubsystem;
 import techmaker.util.StateMachine;
-
+@Disabled
 @TeleOp(name = "TeleOp geral")
 public class TeleOP extends OpMode {
     private ClawSubsystem claw;
@@ -44,7 +45,7 @@ public class TeleOP extends OpMode {
         claw.clawWrist(ClawSubsystem.minWristL, ClawSubsystem.minWristR);
         claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
         intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, RIGHT_INTAKE_WRIST_MIN);
-        intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, RIGHT_INTAKE_SLIDER_MIN);
+        intake.sliderMin();
 
 
         telemetry.addData("Status", "TeleOp Principal Inicializado");
@@ -68,7 +69,7 @@ public class TeleOP extends OpMode {
 
         if(gamepad2.triangle && state == StateMachine.IDLE){
             state = StateMachine.START_INTAKE;
-            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX,IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
+            intake.sliderMax();
             timeout = 40;
             timer.reset();
         }
@@ -87,7 +88,7 @@ public class TeleOP extends OpMode {
                 state = StateMachine.INTAKING;
             }
             if(state==StateMachine.RETURNING_INTAKE){
-                intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN,IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN);
+                intake.sliderMin();
                 state = StateMachine.IDLE;
 
             }
@@ -130,7 +131,7 @@ public class TeleOP extends OpMode {
             // Dispara ciclo automático com botão X
             if (gamepad2.x && state == StateMachine.IDLE) {
                 state = StateMachine.AUTO_CYCLE_START;
-                intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
+                intake.sliderMax();
                 timeout = 200;
                 timer.reset();
             }

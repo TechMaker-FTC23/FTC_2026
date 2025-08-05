@@ -75,12 +75,11 @@ public class IntakeSubsystem {
 
     public void startIntake() {
         isIntakeActive = true;
-        leftIntake.setPower(0.75);
-        rightIntake.setPower(0.75);
+        leftIntake.setPower(1);
+        rightIntake.setPower(1);
 
     }
-
-    public void reverseIntake() {
+      public void reverseIntake() {
         isIntakeActive = true;
         leftIntake.setPower(-1);
         rightIntake.setPower(-1);

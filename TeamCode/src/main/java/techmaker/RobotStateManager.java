@@ -24,7 +24,7 @@ public class RobotStateManager {
     public void updateIntake(Gamepad gamepad) {
         if (gamepad.triangle && intakeState == StateMachine.IDLE) {
             intakeState = StateMachine.START_INTAKE;
-            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
+            intake.sliderMax();
             timeout = 40;
             timer.reset();
         }
@@ -42,7 +42,7 @@ public class RobotStateManager {
                 intake.startIntake();
                 intakeState = StateMachine.INTAKING;
             } else if (intakeState == StateMachine.RETURNING_INTAKE) {
-                intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN);
+                intake.sliderMin();
                 intakeState = StateMachine.IDLE;
             }
         }
@@ -87,7 +87,7 @@ public class RobotStateManager {
     public void runAutoCycle(Gamepad gamepad) {
         if (gamepad.x && intakeState == StateMachine.IDLE) {
             intakeState = StateMachine.AUTO_CYCLE_START;
-            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
+            intake.sliderMax();
             timeout = 200;
             timer.reset();
         }
