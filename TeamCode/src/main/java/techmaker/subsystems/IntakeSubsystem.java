@@ -18,6 +18,7 @@ public class IntakeSubsystem {
 
     public static final String LEFT_INTAKE_NAME = "leftIntake";
     public static final String RIGHT_INTAKE_NAME = "rightIntake";
+    public static final String FRONT_INTAKE_NAME = "frontIntake";
     public static final String LEFT_INTAKE_WRIST_NAME = "leftIntakeWrist";
     public static final String RIGHT_INTAKE_WRIST_NAME = "rightIntakeWrist";
     public static final String LEFT_INTAKE_SLIDER_NAME = "leftIntakeSlider";
@@ -40,6 +41,7 @@ public class IntakeSubsystem {
 
     private final CRServo leftIntake;
     private final CRServo rightIntake;
+    private final CRServo frontIntake;
     private final Servo leftIntakeWrist;
     private final Servo rightIntakeWrist;
     private final Servo leftIntakeSlider;
@@ -54,6 +56,7 @@ public class IntakeSubsystem {
     public IntakeSubsystem(@NonNull HardwareMap hardwareMap, boolean isRedAlliance) {
         leftIntake = hardwareMap.get(CRServo.class, LEFT_INTAKE_NAME);
         rightIntake = hardwareMap.get(CRServo.class, RIGHT_INTAKE_NAME);
+        frontIntake = hardwareMap.get(CRServo.class, FRONT_INTAKE_NAME);
         leftIntakeWrist = hardwareMap.get(Servo.class, LEFT_INTAKE_WRIST_NAME);
         rightIntakeWrist = hardwareMap.get(Servo.class, RIGHT_INTAKE_WRIST_NAME);
         leftIntakeSlider = hardwareMap.get(Servo.class, LEFT_INTAKE_SLIDER_NAME);
@@ -78,16 +81,19 @@ public class IntakeSubsystem {
     public void startIntake() {
         leftIntake.setPower(1);
         rightIntake.setPower(1);
+        frontIntake.setPower(1);
     }
 
     public void reverseIntake() {
         leftIntake.setPower(-1);
         rightIntake.setPower(-1);
+        frontIntake.setPower(-1);
     }
 
     public void stopIntake() {
         leftIntake.setPower(0);
         rightIntake.setPower(0);
+        frontIntake.setPower(0);
     }
 
     public void intakeWrist(double valueL, double valueR) {
