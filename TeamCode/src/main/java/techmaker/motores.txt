@@ -14,8 +14,8 @@ Motores
 1 - right back - anilha 5
 Servos
 0 - right intake - anilha 0
-1 - left intake - anliha 1
-2 - left wrist - anilha 2
+1 - left wrist - anliha 1
+2 - left intake - anilha 2
 3 - left slider - sem anilha
 4 - front - anilha 4
 
