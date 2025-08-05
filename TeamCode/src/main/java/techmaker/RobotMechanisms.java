@@ -61,7 +61,6 @@ public class RobotMechanisms extends OpMode {
         );
         follower.update();
 
-        // Controles do intake
         if (gamepad2.dpad_right) {
             intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
         }

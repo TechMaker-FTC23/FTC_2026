@@ -12,7 +12,6 @@ public class RobotStateManager {
     private StateMachine clawState = StateMachine.CLAW_SPECIMENT;
     private final ElapsedTime timer = new ElapsedTime();
     private long timeout = 0;
-
     private final IntakeSubsystem intake;
     private final ClawSubsystem claw;
 
@@ -24,7 +23,7 @@ public class RobotStateManager {
     public void updateIntake(Gamepad gamepad) {
         if (gamepad.triangle && intakeState == StateMachine.IDLE) {
             intakeState = StateMachine.START_INTAKE;
-            intake.sliderMax();
+            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
             timeout = 40;
             timer.reset();
         }
@@ -35,14 +34,13 @@ public class RobotStateManager {
             timeout = 40;
             timer.reset();
         }
-
         if (timer.milliseconds() > timeout) {
             if (intakeState == StateMachine.START_INTAKE) {
                 intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
                 intake.startIntake();
                 intakeState = StateMachine.INTAKING;
             } else if (intakeState == StateMachine.RETURNING_INTAKE) {
-                intake.sliderMin();
+                intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN);
                 intakeState = StateMachine.IDLE;
             }
         }
@@ -87,7 +85,7 @@ public class RobotStateManager {
     public void runAutoCycle(Gamepad gamepad) {
         if (gamepad.x && intakeState == StateMachine.IDLE) {
             intakeState = StateMachine.AUTO_CYCLE_START;
-            intake.sliderMax();
+            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
             timeout = 200;
             timer.reset();
         }

@@ -28,10 +28,10 @@ public class PathChainTest extends OpMode {
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
     private final Pose StarPose = new Pose(1, 0, Math.toRadians(0));
     private final Pose Começo = new Pose(2, 0, Math.toRadians(0));
-    private final Pose Coletacima = new Pose(160, -5, Math.toRadians(270));
+    private final Pose Coletacima = new Pose(-95, 80, Math.toRadians(0));
     private final Pose voltaEntrga = new Pose(40, 20, Math.toRadians(135));
-    private final Pose ColetaMeio = new Pose(80, -75, Math.toRadians(180));
-    private final Pose entrega = new Pose(20, 30, Math.toRadians(135));
+    private final Pose ColetaMeio = new Pose(120, 30, Math.toRadians(-90));
+    private final Pose entrega = new Pose(20, -20, Math.toRadians(135));
     private boolean wasFollowing = false;
 
     @Override
@@ -76,10 +76,8 @@ public class PathChainTest extends OpMode {
 
             double heading = follower.poseUpdater.getPose().getHeading();
 
-            double rotatedX = x_stick * Math.cos(-heading) - y_stick * Math.sin(-heading);
-            double rotatedY = x_stick * Math.sin(-heading) + y_stick * Math.cos(-heading);
 
-            follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn_stick, false);
+            follower.setTeleOpMovementVectors(y_stick, x_stick, turn_stick, false);
 
             if (gamepad1.dpad_down) {
                 imu.resetYaw();
