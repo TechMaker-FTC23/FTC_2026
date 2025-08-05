@@ -9,6 +9,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.concurrent.TimeUnit;
 
+import techmaker.Constants;
+import techmaker.Constants.Claw.*;
 @Config
 // ALTERADO: O nome da classe agora descreve melhor sua função completa.
 public class ClawSubsystem {
@@ -16,11 +18,6 @@ public class ClawSubsystem {
     // --- Constantes ---
 
     // NOVO: Constantes para os nomes do hardware. Evita erros de digitação e facilita a manutenção.
-    public static final String MIDDLE_CLAW_SERVO_NAME = "middleclaw";
-    public static final String LEFT_CLAW_WRIST_NAME = "leftclaw";
-    public static final String RIGHT_CLAW_WRIST_NAME = "rightclaw";
-    public static final String LEFT_CLAW_ARM_NAME = "leftclawarm";
-    public static final String RIGHT_CLAW_ARM_NAME = "rightclawarm";
     public static double maxClaw = 0.65;
     public static double minClaw = 0.4;
     public static double maxArmL = 0.12;
@@ -49,11 +46,11 @@ public class ClawSubsystem {
      * @param hardwareMap O mapa de hardware do robô.
      */
     public ClawSubsystem(HardwareMap hardwareMap) {
-        middleClawServo = hardwareMap.get(Servo.class, MIDDLE_CLAW_SERVO_NAME);
-        leftClawWrist = hardwareMap.get(Servo.class, LEFT_CLAW_WRIST_NAME);
-        rightClawWrist = hardwareMap.get(Servo.class, RIGHT_CLAW_WRIST_NAME);
-        leftClawArm = hardwareMap.get(Servo.class, LEFT_CLAW_ARM_NAME);
-        rightClawArm = hardwareMap.get(Servo.class, RIGHT_CLAW_ARM_NAME);
+        middleClawServo = hardwareMap.get(Servo.class, Constants.Claw.MiddleClaw);
+        leftClawWrist = hardwareMap.get(Servo.class, Constants.Claw.LeftClaw);
+        rightClawWrist = hardwareMap.get(Servo.class, Constants.Claw.RightClaw);
+        leftClawArm = hardwareMap.get(Servo.class, Constants.Claw.LeftArm);
+        rightClawArm = hardwareMap.get(Servo.class, Constants.Claw.RightArm);
         // Configuração inicial dos mecanismos
 
         timer.reset();

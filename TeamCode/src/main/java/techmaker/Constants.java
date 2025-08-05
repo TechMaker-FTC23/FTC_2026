@@ -1,13 +1,13 @@
 package techmaker;
 
 public class Constants {
-    public static class drivetrain{
+    public static class Drivetrain {
         public static String LeftFront = "leftfront";
         public static String RightFront = "rightfront";
         public static String LeftBack = "leftback";
         public static String RightBack = "rightback";
     }
-    public static class intake{
+    public static class Intake {
         public static String Right = "rightintake";
         public static String Left = "leftintake";
         public static String Middle = "middleintake";
@@ -17,14 +17,14 @@ public class Constants {
         public static String RightWrist = "rightwrist";
 
     }
-    public static class claw{
+    public static class Claw {
         public static String RightArm = "clawrightarm";
         public static String LeftArm = "clawleftarm";
-        public static String RightClaw = "clawrightclaw";
-        public static String LeftClaw = "clawleftclaw";
-        public static String MiddleClaw = "clawmiddleclaw";
+        public static String RightClaw = "clawright";
+        public static String LeftClaw = "clawleft";
+        public static String MiddleClaw = "clawmiddle";
     }
-    public static class elevator{
+    public static class Elevator {
         public static String LeftElevator = "leftelevator";
         public static String RightElevator = "rightelevator";
     }

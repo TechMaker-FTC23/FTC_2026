@@ -46,7 +46,11 @@ public class TeleOP extends OpMode {
         claw.clawWrist(ClawSubsystem.minWristL, ClawSubsystem.minWristR);
         claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
         intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, RIGHT_INTAKE_WRIST_MIN);
+<<<<<<< HEAD
         intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, RIGHT_INTAKE_SLIDER_MIN);
+=======
+        //intake.sliderMin();
+>>>>>>> eb1c938a257cb958962d23422ca066ace43b08a7
 
 
         telemetry.addData("Status", "TeleOp Principal Inicializado");
@@ -70,7 +74,11 @@ public class TeleOP extends OpMode {
 
         if(gamepad2.triangle && state == StateMachine.IDLE){
             state = StateMachine.START_INTAKE;
+<<<<<<< HEAD
             intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, RIGHT_INTAKE_SLIDER_MAX);
+=======
+            //intake.sliderMax();
+>>>>>>> eb1c938a257cb958962d23422ca066ace43b08a7
             timeout = 40;
             timer.reset();
         }
@@ -89,7 +97,11 @@ public class TeleOP extends OpMode {
                 state = StateMachine.INTAKING;
             }
             if(state==StateMachine.RETURNING_INTAKE){
+<<<<<<< HEAD
                 intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, RIGHT_INTAKE_SLIDER_MIN);
+=======
+                //intake.sliderMin();
+>>>>>>> eb1c938a257cb958962d23422ca066ace43b08a7
                 state = StateMachine.IDLE;
 
             }
@@ -132,7 +144,11 @@ public class TeleOP extends OpMode {
             // Dispara ciclo automático com botão X
             if (gamepad2.x && state == StateMachine.IDLE) {
                 state = StateMachine.AUTO_CYCLE_START;
+<<<<<<< HEAD
                 intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, RIGHT_INTAKE_SLIDER_MAX);
+=======
+                //intake.sliderMax();
+>>>>>>> eb1c938a257cb958962d23422ca066ace43b08a7
                 timeout = 200;
                 timer.reset();
             }

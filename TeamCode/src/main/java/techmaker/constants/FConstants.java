@@ -4,14 +4,16 @@ import com.pedropathing.localization.Localizers;
 import com.pedropathing.follower.FollowerConstants;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import techmaker.Constants;
+
 public class FConstants {
     static {
         FollowerConstants.localizers = Localizers.OTOS;
 
-        FollowerConstants.leftFrontMotorName = "leftFront";
-        FollowerConstants.leftRearMotorName = "leftRear";
-        FollowerConstants.rightFrontMotorName = "rightFront";
-        FollowerConstants.rightRearMotorName = "rightRear";
+        FollowerConstants.leftFrontMotorName = Constants.Drivetrain.LeftFront;
+        FollowerConstants.leftRearMotorName = Constants.Drivetrain.LeftBack;
+        FollowerConstants.rightFrontMotorName = Constants.Drivetrain.RightFront;
+        FollowerConstants.rightRearMotorName = Constants.Drivetrain.RightBack;
 
 
         FollowerConstants.leftFrontMotorDirection = DcMotorSimple.Direction.FORWARD;

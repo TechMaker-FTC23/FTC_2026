@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import java.util.concurrent.TimeUnit;
 
+import techmaker.Constants;
+
 @Config
 public class ElevatorSubsystem {
     private final DcMotorEx leftMotor;
@@ -36,8 +38,8 @@ public class ElevatorSubsystem {
     private ElapsedTime timer = new ElapsedTime();
 
     public ElevatorSubsystem(@NonNull HardwareMap hardwareMap) {
-        leftMotor = hardwareMap.get(DcMotorEx.class, "leftElevatorMotor");
-        rightMotor = hardwareMap.get(DcMotorEx.class, "rightElevatorMotor");
+        leftMotor = hardwareMap.get(DcMotorEx.class, Constants.Elevator.LeftElevator);
+        rightMotor = hardwareMap.get(DcMotorEx.class, Constants.Elevator.RightElevator);
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

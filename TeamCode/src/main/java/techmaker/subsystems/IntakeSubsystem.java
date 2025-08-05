@@ -8,20 +8,14 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-
 import java.util.concurrent.TimeUnit;
+
+import techmaker.Constants;
 
 @Config
 public class IntakeSubsystem {
 
-    public static final String LEFT_INTAKE_NAME = "leftIntake";
-    public static final String RIGHT_INTAKE_NAME = "rightIntake";
-    public static final String LEFT_INTAKE_WRIST_NAME = "leftIntakeWrist";
-    public static final String RIGHT_INTAKE_WRIST_NAME = "rightIntakeWrist";
-    public static final String LEFT_INTAKE_SLIDER_NAME = "leftIntakeSlider";
-    public static final String RIGHT_INTAKE_SLIDER_NAME = "rightIntakeSlider";
 
     public static double LEFT_INTAKE_WRIST_MAX = 0.9;
     public static double RIGHT_INTAKE_WRIST_MAX = 0.1;
@@ -36,6 +30,7 @@ public class IntakeSubsystem {
 
     private final CRServo leftIntake;
     private final CRServo rightIntake;
+    private final CRServo middleIntake;
     private final Servo leftIntakeWrist;
     private final Servo rightIntakeWrist;
     private final Servo leftIntakeSlider;
@@ -49,12 +44,14 @@ public class IntakeSubsystem {
 
     public IntakeSubsystem(@NonNull HardwareMap hardwareMap, boolean isRedAlliance) {
         // Mapeamento do hardware usando as constantes
-        leftIntake = hardwareMap.get(CRServo.class, LEFT_INTAKE_NAME);
-        rightIntake = hardwareMap.get(CRServo.class, RIGHT_INTAKE_NAME);
-        leftIntakeWrist = hardwareMap.get(Servo.class, LEFT_INTAKE_WRIST_NAME);
-        rightIntakeWrist = hardwareMap.get(Servo.class, RIGHT_INTAKE_WRIST_NAME);
-        leftIntakeSlider = hardwareMap.get(Servo.class, LEFT_INTAKE_SLIDER_NAME);
-        rightIntakeSlider = hardwareMap.get(Servo.class, RIGHT_INTAKE_SLIDER_NAME);
+        leftIntake = hardwareMap.get(CRServo.class, Constants.Intake.Left);
+        rightIntake = hardwareMap.get(CRServo.class, Constants.Intake.Right);
+        middleIntake = hardwareMap.get(CRServo.class, Constants.Intake.Middle);
+        leftIntakeWrist = hardwareMap.get(Servo.class, Constants.Intake.LeftWrist);
+        rightIntakeWrist = hardwareMap.get(Servo.class, Constants.Intake.RightWrist);
+        leftIntakeSlider = hardwareMap.get(Servo.class, Constants.Intake.LeftSlider);
+        rightIntakeSlider = hardwareMap.get(Servo.class, Constants.Intake.RightSlider);
+
         colorSensor = hardwareMap.get(ColorSensor.class, COLOR_SENSOR_NAME);
         this.isRedAlliance = isRedAlliance;
         leftIntake.setDirection(CRServo.Direction.REVERSE);
@@ -77,12 +74,14 @@ public class IntakeSubsystem {
         isIntakeActive = true;
         leftIntake.setPower(1);
         rightIntake.setPower(1);
+        middleIntake.setPower(1);
 
     }
       public void reverseIntake() {
         isIntakeActive = true;
         leftIntake.setPower(-1);
         rightIntake.setPower(-1);
+        middleIntake.setPower(-1);
 
     }
 
@@ -90,6 +89,7 @@ public class IntakeSubsystem {
         isIntakeActive = false;
         leftIntake.setPower(0);
         rightIntake.setPower(0);
+        middleIntake.setPower(0);
     }
     public void wrist(double valueL, double valueR) {
         rightIntakeWrist.setPosition(valueR);
