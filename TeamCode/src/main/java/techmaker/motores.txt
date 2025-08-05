@@ -1,0 +1,32 @@
+Driver hub
+Motores
+0 - Right front - anilha 0
+1 - left front - anilha 1
+2 - right elevator - anilha 2
+3 - left elevator - anilha 3
+Servos
+4 - Right slider - sem anilha
+5 - Right wrist - anilha 3
+
+Expansion
+Motores
+0 - left back - anilha 4
+1 - right back - anilha 5
+Servos
+0 - right intake - anilha 0
+1 - left intake - anliha 1
+2 - left wrist - anilha 2
+3 - left slider - sem anilha
+4 - front - anilha 4
+
+I2C
+0 - Cor
+1 - Otos
+2 - Pinpoint
+
+Servo hub - all claw
+0 - rightarm
+1 - leftarm
+2 - right
+3 - left
+4 - middle

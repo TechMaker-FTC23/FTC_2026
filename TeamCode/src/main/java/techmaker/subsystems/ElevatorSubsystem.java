@@ -38,7 +38,7 @@ public class ElevatorSubsystem {
     public ElevatorSubsystem(@NonNull HardwareMap hardwareMap) {
         leftMotor = hardwareMap.get(DcMotorEx.class, "leftElevatorMotor");
         rightMotor = hardwareMap.get(DcMotorEx.class, "rightElevatorMotor");
-        leftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);

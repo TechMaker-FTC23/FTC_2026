@@ -64,13 +64,14 @@ public class TeleOp2 extends OpMode {
         double x_stick = gamepad1.left_stick_x;
         double turn_stick = -gamepad1.right_stick_x;
 
-        double rawHeading = follower.poseUpdater.getPose().getHeading();
+        /*double rawHeading = follower.poseUpdater.getPose().getHeading();
         double heading = normalizeAngle(rawHeading - headingOffset);
 
         double rotatedX = x_stick * Math.cos(-heading) - y_stick * Math.sin(-heading);
         double rotatedY = x_stick * Math.sin(-heading) + y_stick * Math.cos(-heading);
 
-        follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn_stick, false);
+        follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn_stick, false);*/
+        follower.setTeleOpMovementVectors(y_stick, x_stick, turn_stick, false);
         intake.maintainSliderPosition();
 
         if (gamepad2.triangle && state == StateMachine.IDLE) {
