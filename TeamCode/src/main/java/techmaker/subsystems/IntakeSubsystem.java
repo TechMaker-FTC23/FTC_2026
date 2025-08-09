@@ -25,8 +25,8 @@ public class IntakeSubsystem {
 
     public static double LEFT_INTAKE_WRIST_MAX = 0.9;
     public static double RIGHT_INTAKE_WRIST_MAX = 0.1;
-    public static double LEFT_INTAKE_WRIST_MIN = 0.3;
-    public static double RIGHT_INTAKE_WRIST_MIN = 0.7;
+    public static double LEFT_INTAKE_WRIST_MIN = 0.32;
+    public static double RIGHT_INTAKE_WRIST_MIN = 0.68;
 
     public static double LEFT_INTAKE_SLIDER_MAX = 0.4;
     public static double RIGHT_INTAKE_SLIDER_MAX = 0.6;

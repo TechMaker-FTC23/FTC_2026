@@ -63,10 +63,11 @@ public class TeleOp2 extends OpMode {
     @Override
     public void loop() {
         double y_stick = gamepad1.left_stick_y;
-        double x_stick = gamepad1.left_stick_x;
+        double x_stick = -gamepad1.left_stick_x;
         double turn_stick = -gamepad1.right_stick_x;
 
         follower.setTeleOpMovementVectors(y_stick, x_stick, turn_stick, false);
+
         intake.maintainSliderPosition();
 
         if (gamepad2.triangle && state == StateMachine.IDLE) {
@@ -88,7 +89,6 @@ public class TeleOp2 extends OpMode {
             stateClawSample = StateMachine.CLAW_SAMPLE;
             claw.setArmPosition(ClawSubsystem.ARM_LEFT_INTAKE_CLAW, ClawSubsystem.ARM_RIGHT_INTAKE_CLAW);
             claw.setClawOpen(false);
-            elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
             timeout = 100;
             timer.reset();
         } else if (gamepad2.left_bumper && stateClawSample == StateMachine.DELIVERY_SPECIMENT) {
@@ -141,7 +141,7 @@ public class TeleOp2 extends OpMode {
 
             if (stateClawSample == StateMachine.CLAW_SAMPLE) {
                 intake.reverseIntake();
-                elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+                elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
                 stateClawSample = StateMachine.DELIVER_SAMPLE;
                 timeout = 200;
                 timer.reset();
@@ -153,7 +153,7 @@ public class TeleOp2 extends OpMode {
             }
             else if (stateClawSample == StateMachine.CLAW_RETRACT) {
                 claw.setState(ClawSubsystem.ClawState.TRAVEL);
-                elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
+                elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
                 intake.stopIntake();
                 stateClawSample = StateMachine.CLAW_SPECIMENT;
             }

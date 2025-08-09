@@ -111,9 +111,9 @@ public class RobotMechanisms extends OpMode {
 
         // --- Lógica do Elevador (permanece inalterada) ---
         if (gamepad2.right_trigger > 0.5) {
-            elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+            elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
         } else if (gamepad2.left_trigger > 0.5) {
-            elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
+            elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
         }
 
         claw.update(telemetry);

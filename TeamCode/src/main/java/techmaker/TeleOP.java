@@ -37,7 +37,7 @@ public class TeleOP extends OpMode {
         // Posição inicial segura do robô
         claw.setState(ClawSubsystem.ClawState.TRAVEL);
         claw.setClawOpen(true);
-        elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
+        elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
         intake.sliderMin();
         intake.wristMin();
         telemetry.addData("Status", "TeleOp Final Inicializado");
@@ -56,7 +56,7 @@ public class TeleOP extends OpMode {
         handleDrive();
         handleInputs();
         runStateMachine();
-        updateSubsystems();
+      //  updateSubsystems();
     }
 
     private void handleDrive() {
@@ -65,12 +65,12 @@ public class TeleOP extends OpMode {
         double turn_stick = -gamepad1.right_stick_x;
 
         double rawHeading = follower.poseUpdater.getPose().getHeading();
-        double heading = normalizeAngle(rawHeading - headingOffset);
+        //double heading = normalizeAngle(rawHeading - headingOffset);
 
-        double rotatedX = x_stick * Math.cos(heading) + y_stick * Math.sin(heading);
-        double rotatedY = -x_stick * Math.sin(heading) + y_stick * Math.cos(heading);
+     //   double rotatedX = x_stick * Math.cos(heading) + y_stick * Math.sin(heading);
+      //  double rotatedY = -x_stick * Math.sin(heading) + y_stick * Math.cos(heading);
 
-        follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn_stick, false);
+      //  follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn_stick, false);
     }
 
     private void handleInputs() {
@@ -152,13 +152,16 @@ public class TeleOP extends OpMode {
             case SCORE_MEDIUM:
             case SCORE_HIGH:
                 claw.setState(ClawSubsystem.ClawState.SCORE);
-                if(state == StateMachine.SCORE_LOW) elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_LOW);
-                if(state == StateMachine.SCORE_MEDIUM) elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_MEDIUM);
-                if(state == StateMachine.SCORE_HIGH) elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+                if (state == StateMachine.SCORE_LOW)
+                    elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_LOW);
+                if (state == StateMachine.SCORE_MEDIUM)
+                    elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_MEDIUM);
+                if (state == StateMachine.SCORE_HIGH)
+                    elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
                 state = StateMachine.WAITING_FOR_LIFT;
                 break;
             case WAITING_FOR_LIFT:
-                if (!elevator.isBusy()) {
+                /*if (!elevator.isBusy()) {
                     state = StateMachine.DELIVERY_SPECIMENT; // Pronto para soltar o pixel
                 }
                 break;
@@ -233,5 +236,8 @@ public class TeleOP extends OpMode {
         while (angle > Math.PI) angle -= 2 * Math.PI;
         while (angle < -Math.PI) angle += 2 * Math.PI;
         return angle;
+    }
+}
+*/}
     }
 }
