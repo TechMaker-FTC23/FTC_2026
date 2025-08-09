@@ -39,7 +39,7 @@ public class TeleOP extends OpMode {
         claw.setClawOpen(true);
         elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
         intake.sliderMin();
-
+        intake.wristMin();
         telemetry.addData("Status", "TeleOp Final Inicializado");
         telemetry.update();
     }

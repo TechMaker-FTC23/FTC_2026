@@ -4,26 +4,23 @@ import android.graphics.Color;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import techmaker.constants.Constants;
+
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.concurrent.TimeUnit;
 
 @Config
 public class IntakeSubsystem {
 
-    public static final String LEFT_INTAKE_NAME = "leftIntake";
-    public static final String RIGHT_INTAKE_NAME = "rightIntake";
-    public static final String MIDDLE_INTAKE_NAME = "middleIntake";
-    public static final String LEFT_INTAKE_WRIST_NAME = "leftIntakeWrist";
-    public static final String RIGHT_INTAKE_WRIST_NAME = "rightIntakeWrist";
-    public static final String LEFT_INTAKE_SLIDER_NAME = "leftIntakeSlider";
-    public static final String RIGHT_INTAKE_SLIDER_NAME = "rightIntakeSlider";
     public static final String COLOR_SENSOR_NAME = "colorSensor";
 
     public static double LEFT_INTAKE_WRIST_MAX = 0.9;
@@ -31,10 +28,10 @@ public class IntakeSubsystem {
     public static double LEFT_INTAKE_WRIST_MIN = 0.3;
     public static double RIGHT_INTAKE_WRIST_MIN = 0.7;
 
-    public static double LEFT_INTAKE_SLIDER_MAX = 0.6;
-    public static double RIGHT_INTAKE_SLIDER_MAX = 0.4;
-    public static double LEFT_INTAKE_SLIDER_MED = 0.7; // Posição média
-    public static double RIGHT_INTAKE_SLIDER_MED = 0.3; // Posição média
+    public static double LEFT_INTAKE_SLIDER_MAX = 0.4;
+    public static double RIGHT_INTAKE_SLIDER_MAX = 0.6;
+    public static double LEFT_INTAKE_SLIDER_MED = 0.7;
+    public static double RIGHT_INTAKE_SLIDER_MED = 0.3;
     public static double LEFT_INTAKE_SLIDER_MIN = 0.8;
     public static double RIGHT_INTAKE_SLIDER_MIN = 0.2;
 
@@ -69,14 +66,13 @@ public class IntakeSubsystem {
     private CaptureState captureState = CaptureState.IDLE;
 
     public IntakeSubsystem(HardwareMap hardwareMap, boolean isRedAlliance) {
-        // ... (código do construtor sem alterações)
-        leftIntake = hardwareMap.get(CRServo.class, LEFT_INTAKE_NAME);
-        rightIntake = hardwareMap.get(CRServo.class, RIGHT_INTAKE_NAME);
-        middleIntake = hardwareMap.get(CRServo.class, MIDDLE_INTAKE_NAME);
-        leftIntakeWrist = hardwareMap.get(Servo.class, LEFT_INTAKE_WRIST_NAME);
-        rightIntakeWrist = hardwareMap.get(Servo.class, RIGHT_INTAKE_WRIST_NAME);
-        leftIntakeSlider = hardwareMap.get(Servo.class, LEFT_INTAKE_SLIDER_NAME);
-        rightIntakeSlider = hardwareMap.get(Servo.class, RIGHT_INTAKE_SLIDER_NAME);
+        leftIntake = hardwareMap.get(CRServo.class,Constants.Intake.Left);
+        rightIntake = hardwareMap.get(CRServo.class, Constants.Intake.Right);
+        middleIntake = hardwareMap.get(CRServo.class, Constants.Intake.Middle);
+        leftIntakeWrist = hardwareMap.get(Servo.class, Constants.Intake.LeftWrist);
+        rightIntakeWrist = hardwareMap.get(Servo.class, Constants.Intake.RightWrist);
+        leftIntakeSlider = hardwareMap.get(Servo.class, Constants.Intake.LeftSlider);
+        rightIntakeSlider = hardwareMap.get(Servo.class, Constants.Intake.RightSlider);
         try {
             colorSensor = hardwareMap.get(NormalizedColorSensor.class, COLOR_SENSOR_NAME);
         } catch (Exception e) {
@@ -95,16 +91,21 @@ public class IntakeSubsystem {
 
     public boolean isPixelDetected() {
         if (colorSensor == null) return false;
-        NormalizedRGBA colors = colorSensor.getNormalizedColors();
+        /*NormalizedRGBA colors = colorSensor.getNormalizedColors();
         Color.colorToHSV(colors.toColor(), hsvValues);
+
         float hue = hsvValues[0], saturation = hsvValues[1], value = hsvValues[2];
+
         if (saturation < MIN_SATURATION || value < MIN_VALUE) return false;
+
         if (hue >= YELLOW_HUE_MIN && hue <= YELLOW_HUE_MAX) return true;
+
         if (isRedAlliance) {
             return (hue >= RED_HUE_MIN_1 && hue <= RED_HUE_MAX_1) || (hue >= RED_HUE_MIN_2 && hue <= RED_HUE_MAX_2);
         } else {
             return (hue >= BLUE_HUE_MIN && hue <= BLUE_HUE_MAX);
-        }
+        }*/
+        return (((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM)<3);
     }
 
     public void startAutomaticCapture() {
@@ -129,14 +130,14 @@ public class IntakeSubsystem {
     }
 
     public void startIntake() {
-        leftIntake.setPower(1.0);
-        rightIntake.setPower(1.0);
-        middleIntake.setPower(1.0);
+        leftIntake.setPower(-1.0);
+        rightIntake.setPower(-1.0);
+        middleIntake.setPower(-1.0);
     }
 
     public void reverseIntake() {
-        leftIntake.setPower(-1.0);
-        rightIntake.setPower(-1.0);
+        leftIntake.setPower(1.0);
+        rightIntake.setPower(1.0);
     }
 
     public void stopIntake() {
@@ -174,9 +175,11 @@ public class IntakeSubsystem {
         leftIntakeSlider.setPosition(lastLeftSliderPos);
         rightIntakeSlider.setPosition(lastRightSliderPos);
     }
+    public void wristMin(){
+        wrist(LEFT_INTAKE_WRIST_MIN, RIGHT_INTAKE_WRIST_MIN);
+    }
 
     public void update(Telemetry telemetry) {
-        // ... (código da telemetria sem alterações)
         if (timer.time(TimeUnit.MILLISECONDS) > 50) {
             timer.reset();
             telemetry.addData("Aliança", isRedAlliance ? "Vermelha" : "Azul");

@@ -44,6 +44,7 @@ public class TeleOp2 extends OpMode {
         // MUDANÇA: Define a posição inicial segura da garra com um único comando.
         claw.setState(ClawSubsystem.ClawState.TRAVEL);
         claw.setClawOpen(true); // Começa com a garra aberta
+        claw.setArmPosition(ClawSubsystem.ARM_LEFT_TRAVEL_CLAW, ClawSubsystem.ARM_RIGHT_TRAVEL_CLAW);
 
         intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
         intake.sliderMin();
@@ -70,10 +71,12 @@ public class TeleOp2 extends OpMode {
 
         if (gamepad2.triangle && state == StateMachine.IDLE) {
             state = StateMachine.START_INTAKE;
-            intake.sliderMax();
+            intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
+            intake.startIntake();
             timeout = 100;
             timer.reset();
-        } else if (gamepad2.circle && state == StateMachine.INTAKING) {
+        } else if ((gamepad2.circle && state == StateMachine.INTAKING) ||
+                intake.isPixelDetected() && state==StateMachine.INTAKING){
             state = StateMachine.RETURNING_INTAKE;
             intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
             intake.stopIntake();
@@ -104,8 +107,8 @@ public class TeleOp2 extends OpMode {
 
         if (timer.milliseconds() > timeout) {
             if (state == StateMachine.START_INTAKE) {
-                intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
-                intake.startIntake();
+                intake.sliderMax();
+
                 state = StateMachine.INTAKING;
             } else if (state == StateMachine.RETURNING_INTAKE) {
                 intake.sliderMin();
