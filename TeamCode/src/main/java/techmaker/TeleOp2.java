@@ -86,8 +86,9 @@ public class TeleOp2 extends OpMode {
 
         if (gamepad2.right_bumper && stateClawSample == StateMachine.CLAW_SPECIMENT) {
             stateClawSample = StateMachine.CLAW_SAMPLE;
-            // MUDANÇA: Usa o novo método para fechar a garra.
+            claw.setArmPosition(ClawSubsystem.ARM_LEFT_INTAKE_CLAW, ClawSubsystem.ARM_RIGHT_INTAKE_CLAW);
             claw.setClawOpen(false);
+            elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
             timeout = 100;
             timer.reset();
         } else if (gamepad2.left_bumper && stateClawSample == StateMachine.DELIVERY_SPECIMENT) {
@@ -144,13 +145,13 @@ public class TeleOp2 extends OpMode {
                 stateClawSample = StateMachine.DELIVER_SAMPLE;
                 timeout = 200;
                 timer.reset();
-            } else if (stateClawSample == StateMachine.DELIVER_SAMPLE) {
-                // MUDANÇA: Usa a nova API da garra.
+            }
+            else if (stateClawSample == StateMachine.DELIVER_SAMPLE) {
                 claw.setState(ClawSubsystem.ClawState.SCORE);
                 intake.stopIntake();
                 stateClawSample = StateMachine.DELIVERY_SPECIMENT;
-            } else if (stateClawSample == StateMachine.CLAW_RETRACT) {
-                // MUDANÇA: Usa a nova API da garra.
+            }
+            else if (stateClawSample == StateMachine.CLAW_RETRACT) {
                 claw.setState(ClawSubsystem.ClawState.TRAVEL);
                 elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
                 intake.stopIntake();

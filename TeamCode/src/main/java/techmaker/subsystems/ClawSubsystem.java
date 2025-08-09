@@ -20,14 +20,15 @@ public class ClawSubsystem {
 
     // --- Constantes de Posição com Nomes Clarificados ---
     // Posições para o estado INTAKE
-    public static double ARM_LEFT_INTAKE_CLAW = 0.45;
-    public static double ARM_RIGHT_INTAKE_CLAW = 0.55;
+    public static double ARM_LEFT_INTAKE_CLAW = 0.77;
+    public static double ARM_RIGHT_INTAKE_CLAW = 0.23;
+
     public static double WRIST_LEFT_INTAKE_CLAW = 0.7;
     public static double WRIST_RIGHT_INTAKE_CLAW = 0.3;
 
     // Posições para o estado TRAVEL (intermediário)
-    public static double ARM_LEFT_TRAVEL_CLAW = 0.8;
-    public static double ARM_RIGHT_TRAVEL_CLAW = 0.2;
+    public static double ARM_LEFT_TRAVEL_CLAW = 0.7;
+    public static double ARM_RIGHT_TRAVEL_CLAW = 0.3;
     public static double WRIST_LEFT_TRAVEL_CLAW = 0.8;
     public static double WRIST_RIGHT_TRAVEL_CLAW = 0.2;
 
