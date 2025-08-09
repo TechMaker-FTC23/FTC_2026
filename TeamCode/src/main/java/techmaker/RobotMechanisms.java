@@ -16,7 +16,7 @@ import techmaker.subsystems.ClawSubsystem;
 import techmaker.subsystems.ElevatorSubsystem;
 import techmaker.subsystems.IntakeSubsystem;
 
-@TeleOp(name = "Controle Principal do Robô", group = "PedroPathing")
+@TeleOp
 public class RobotMechanisms extends OpMode {
 
     private ClawSubsystem claw;
@@ -37,9 +37,13 @@ public class RobotMechanisms extends OpMode {
         claw = new ClawSubsystem(hardwareMap);
         elevator = new ElevatorSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap, false);
-        claw.clawWrist(ClawSubsystem.minWristL, ClawSubsystem.minWristR);
-        claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
-        intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, RIGHT_INTAKE_WRIST_MIN);
+
+        // --- MUDANÇA: Configuração inicial da garra usando a nova API ---
+        // Define a posição inicial segura com um único comando.
+        claw.setState(ClawSubsystem.ClawState.TRAVEL);
+        claw.setClawOpen(true); // Começa com a garra aberta
+
+        intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, RIGHT_INTAKE_WRIST_MIN);
 
         telemetry.addData("Status", "TeleOp Principal Inicializado");
         telemetry.addData("Dashboard", "Conecte-se em 192.168.43.1:8080");
@@ -61,6 +65,7 @@ public class RobotMechanisms extends OpMode {
         );
         follower.update();
 
+        // --- Lógica do Intake (permanece inalterada) ---
         if (gamepad2.dpad_right) {
             intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
         }
@@ -69,41 +74,46 @@ public class RobotMechanisms extends OpMode {
             intake.stopIntake();
         }
         if (gamepad2.left_stick_x > 0.5) {
-            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
+            intake.sliderMax();
         } else {
-            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN);
+            intake.sliderMin();
         }
         if (gamepad2.triangle){
-            intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX,IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
+            intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX,IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
             intake.startIntake();
-        } else if (gamepad2.right_bumper) {
-            claw.middleClaw(ClawSubsystem.maxClaw);
         } else {
-            intake.stopIntake();
+            // Pequena correção: o right_bumper não deve parar o intake.
+            // A parada do intake deve ser explícita.
+            if (!gamepad2.triangle) {
+                intake.stopIntake();
+            }
         }
 
-        // Controles da garra
+        // --- MUDANÇA: Controles da garra usando a nova API ---
+        // Move a garra para a posição de VIAGEM (segura)
         if (gamepad2.dpad_down) {
-            claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
-            claw.clawWrist(ClawSubsystem.medWristl, ClawSubsystem.medWristR);
-
+            claw.setState(ClawSubsystem.ClawState.TRAVEL);
         }
+        // Move a garra para a posição de PONTUAR
         if (gamepad2.dpad_up) {
-            claw.clawArm(ClawSubsystem.maxArmL, ClawSubsystem.maxArmR);
-            claw.clawWrist(ClawSubsystem.maxWristL, ClawSubsystem.maxWristR);
-            intake.reverseIntake();
-
+            claw.setState(ClawSubsystem.ClawState.SCORE);
+            intake.reverseIntake(); // A lógica de reverter o intake permanece
         }
 
+        // Fecha a garra
+        if (gamepad2.right_bumper) {
+            claw.setClawOpen(false);
+        }
+        // Abre a garra
         if (gamepad2.left_bumper) {
-            claw.middleClaw(ClawSubsystem.minClaw);
+            claw.setClawOpen(true);
         }
 
-        // Controles do elevador com presets
+        // --- Lógica do Elevador (permanece inalterada) ---
         if (gamepad2.right_trigger > 0.5) {
-            elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+            elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
         } else if (gamepad2.left_trigger > 0.5) {
-            elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
+            elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
         }
 
         claw.update(telemetry);

@@ -15,7 +15,7 @@ import techmaker.subsystems.ElevatorSubsystem;
 import techmaker.subsystems.IntakeSubsystem;
 import techmaker.util.StateMachine;
 
-@TeleOp(name = "TeleOp Geral (IF/ELSE IF)")
+@TeleOp(name = "TeleOp Geral")
 public class TeleOp2 extends OpMode {
     private ClawSubsystem claw;
     private ElevatorSubsystem elevator;
@@ -41,11 +41,12 @@ public class TeleOp2 extends OpMode {
         elevator = new ElevatorSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap, false);
 
-        claw.clawWrist(ClawSubsystem.medWristl, ClawSubsystem.medWristR);
-        claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
-        claw.middleClaw(ClawSubsystem.minClaw);
-        intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
-        intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN);
+        // MUDANÇA: Define a posição inicial segura da garra com um único comando.
+        claw.setState(ClawSubsystem.ClawState.TRAVEL);
+        claw.setClawOpen(true); // Começa com a garra aberta
+
+        intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
+        intake.sliderMin();
 
         telemetry.addData("Status", "TeleOp Principal Inicializado");
         telemetry.update();
@@ -64,24 +65,17 @@ public class TeleOp2 extends OpMode {
         double x_stick = gamepad1.left_stick_x;
         double turn_stick = -gamepad1.right_stick_x;
 
-        /*double rawHeading = follower.poseUpdater.getPose().getHeading();
-        double heading = normalizeAngle(rawHeading - headingOffset);
-
-        double rotatedX = x_stick * Math.cos(-heading) - y_stick * Math.sin(-heading);
-        double rotatedY = x_stick * Math.sin(-heading) + y_stick * Math.cos(-heading);
-
-        follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn_stick, false);*/
         follower.setTeleOpMovementVectors(y_stick, x_stick, turn_stick, false);
         intake.maintainSliderPosition();
 
         if (gamepad2.triangle && state == StateMachine.IDLE) {
             state = StateMachine.START_INTAKE;
-            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
+            intake.sliderMax();
             timeout = 100;
             timer.reset();
         } else if (gamepad2.circle && state == StateMachine.INTAKING) {
             state = StateMachine.RETURNING_INTAKE;
-            intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
+            intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
             intake.stopIntake();
             timeout = 100;
             timer.reset();
@@ -89,47 +83,51 @@ public class TeleOp2 extends OpMode {
 
         if (gamepad2.right_bumper && stateClawSample == StateMachine.CLAW_SPECIMENT) {
             stateClawSample = StateMachine.CLAW_SAMPLE;
-            claw.middleClaw(ClawSubsystem.maxClaw);
+            // MUDANÇA: Usa o novo método para fechar a garra.
+            claw.setClawOpen(false);
             timeout = 100;
             timer.reset();
         } else if (gamepad2.left_bumper && stateClawSample == StateMachine.DELIVERY_SPECIMENT) {
             stateClawSample = StateMachine.CLAW_RETRACT;
-            claw.middleClaw(ClawSubsystem.minClaw);
-            timeout = 100;
+            // MUDANÇA: Usa o novo método para abrir a garra.
+            claw.setClawOpen(true);
+            timeout = 200;
             timer.reset();
         }
 
         if (gamepad2.cross && state == StateMachine.IDLE) {
             state = StateMachine.AUTO_CYCLE_START;
-            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
+            intake.sliderMax();
             timeout = 100;
             timer.reset();
         }
 
         if (timer.milliseconds() > timeout) {
             if (state == StateMachine.START_INTAKE) {
-                intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
+                intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
                 intake.startIntake();
                 state = StateMachine.INTAKING;
             } else if (state == StateMachine.RETURNING_INTAKE) {
-                intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN);
+                intake.sliderMin();
                 state = StateMachine.IDLE;
             } else if (state == StateMachine.AUTO_CYCLE_START) {
-                intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
+                intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
                 intake.startIntake();
                 state = StateMachine.AUTO_INTAKING;
                 timeout = 400;
                 timer.reset();
             } else if (state == StateMachine.AUTO_INTAKING) {
-                claw.middleClaw(ClawSubsystem.maxClaw);
+                // MUDANÇA: Usa a nova API da garra.
+                claw.setClawOpen(false);
+                claw.setState(ClawSubsystem.ClawState.INTAKE);
                 intake.reverseIntake();
-                claw.clawWrist(ClawSubsystem.maxWristL, ClawSubsystem.maxWristR);
                 state = StateMachine.AUTO_GRAB;
                 timeout = 200;
                 timer.reset();
             } else if (state == StateMachine.AUTO_GRAB) {
                 intake.stopIntake();
-                claw.clawArm(ClawSubsystem.maxArmL, ClawSubsystem.maxArmR);
+                // MUDANÇA: Usa a nova API da garra.
+                claw.setState(ClawSubsystem.ClawState.SCORE);
                 state = StateMachine.AUTO_RAISE;
                 timeout = 200;
                 timer.reset();
@@ -139,17 +137,19 @@ public class TeleOp2 extends OpMode {
 
             if (stateClawSample == StateMachine.CLAW_SAMPLE) {
                 intake.reverseIntake();
-                elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_MEDIUM);
+                elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
                 stateClawSample = StateMachine.DELIVER_SAMPLE;
                 timeout = 200;
                 timer.reset();
             } else if (stateClawSample == StateMachine.DELIVER_SAMPLE) {
-                claw.clawArm(ClawSubsystem.maxArmL, ClawSubsystem.maxArmR);
+                // MUDANÇA: Usa a nova API da garra.
+                claw.setState(ClawSubsystem.ClawState.SCORE);
                 intake.stopIntake();
                 stateClawSample = StateMachine.DELIVERY_SPECIMENT;
             } else if (stateClawSample == StateMachine.CLAW_RETRACT) {
-                claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
-                elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
+                // MUDANÇA: Usa a nova API da garra.
+                claw.setState(ClawSubsystem.ClawState.TRAVEL);
+                elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
                 intake.stopIntake();
                 stateClawSample = StateMachine.CLAW_SPECIMENT;
             }

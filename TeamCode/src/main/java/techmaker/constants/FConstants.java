@@ -4,8 +4,6 @@ import com.pedropathing.localization.Localizers;
 import com.pedropathing.follower.FollowerConstants;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import techmaker.Constants;
-
 public class FConstants {
     static {
         FollowerConstants.localizers = Localizers.OTOS;

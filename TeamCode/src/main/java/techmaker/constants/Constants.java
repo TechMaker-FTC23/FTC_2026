@@ -1,4 +1,4 @@
-package techmaker;
+package techmaker.constants;
 
 public class Constants {
     public static class Drivetrain {

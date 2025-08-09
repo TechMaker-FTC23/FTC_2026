@@ -23,32 +23,24 @@ public class RobotStateManager {
     public void updateIntake(Gamepad gamepad) {
         if (gamepad.triangle && intakeState == StateMachine.IDLE) {
             intakeState = StateMachine.START_INTAKE;
-<<<<<<< HEAD
-            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
-=======
-            //intake.sliderMax();
->>>>>>> eb1c938a257cb958962d23422ca066ace43b08a7
+            intake.sliderMax();
             timeout = 40;
             timer.reset();
         }
         if (gamepad.circle && intakeState == StateMachine.INTAKING) {
             intakeState = StateMachine.RETURNING_INTAKE;
-            intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
+            intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
             intake.stopIntake();
             timeout = 40;
             timer.reset();
         }
         if (timer.milliseconds() > timeout) {
             if (intakeState == StateMachine.START_INTAKE) {
-                intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
+                intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
                 intake.startIntake();
                 intakeState = StateMachine.INTAKING;
             } else if (intakeState == StateMachine.RETURNING_INTAKE) {
-<<<<<<< HEAD
-                intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MIN, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MIN);
-=======
-                //intake.sliderMin();
->>>>>>> eb1c938a257cb958962d23422ca066ace43b08a7
+                intake.sliderMin();
                 intakeState = StateMachine.IDLE;
             }
         }
@@ -57,7 +49,8 @@ public class RobotStateManager {
     public void updateClaw(Gamepad gamepad) {
         if (gamepad.right_bumper && clawState == StateMachine.CLAW_SPECIMENT) {
             clawState = StateMachine.CLAW_SAMPLE;
-            claw.middleClaw(ClawSubsystem.maxClaw);
+            // MUDANÇA: Usa o novo método para fechar a garra.
+            claw.setClawOpen(false);
             timeout = 40;
             timer.reset();
         }
@@ -65,26 +58,30 @@ public class RobotStateManager {
         if (timer.milliseconds() > timeout) {
             if (clawState == StateMachine.CLAW_SAMPLE) {
                 intake.reverseIntake();
-                claw.clawWrist(ClawSubsystem.maxWristL, ClawSubsystem.maxWristR);
+                // MUDANÇA: Define a posição de pontuação com um único comando.
+                claw.setState(ClawSubsystem.ClawState.SCORE);
                 clawState = StateMachine.DELIVER_SAMPLE;
                 timeout = 40;
                 timer.reset();
             } else if (clawState == StateMachine.DELIVER_SAMPLE) {
-                claw.clawArm(ClawSubsystem.maxArmL, ClawSubsystem.maxArmR);
+                // A ação de mover os servos já foi feita no estado anterior.
+                // Este estado agora apenas espera.
                 intake.stopIntake();
                 clawState = StateMachine.DELIVERY_SPECIMENT;
             }
         }
 
         if (gamepad.left_bumper && clawState == StateMachine.DELIVERY_SPECIMENT) {
-            claw.middleClaw(ClawSubsystem.minClaw);
+            // MUDANÇA: Usa o novo método para abrir a garra.
+            claw.setClawOpen(true);
             clawState = StateMachine.CLAW_RETRACT;
             timeout = 40;
             timer.reset();
         }
 
         if (timer.milliseconds() > timeout && clawState == StateMachine.CLAW_RETRACT) {
-            claw.clawArm(ClawSubsystem.medArml, ClawSubsystem.medArmR);
+            // MUDANÇA: Define a posição de viagem com um único comando.
+            claw.setState(ClawSubsystem.ClawState.TRAVEL);
             intake.stopIntake();
             clawState = StateMachine.CLAW_SPECIMENT;
         }
@@ -93,32 +90,30 @@ public class RobotStateManager {
     public void runAutoCycle(Gamepad gamepad) {
         if (gamepad.x && intakeState == StateMachine.IDLE) {
             intakeState = StateMachine.AUTO_CYCLE_START;
-<<<<<<< HEAD
-            intake.slider(IntakeSubsystem.LEFT_INTAKE_SLIDER_MAX, IntakeSubsystem.RIGHT_INTAKE_SLIDER_MAX);
-=======
-            //intake.sliderMax();
->>>>>>> eb1c938a257cb958962d23422ca066ace43b08a7
+            intake.sliderMax();
             timeout = 200;
             timer.reset();
         }
 
         if (timer.milliseconds() > timeout) {
             if (intakeState == StateMachine.AUTO_CYCLE_START) {
-                intake.intakeWrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
+                intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
                 intake.startIntake();
                 intakeState = StateMachine.AUTO_INTAKING;
                 timeout = 400;
                 timer.reset();
             } else if (intakeState == StateMachine.AUTO_INTAKING) {
-                claw.middleClaw(ClawSubsystem.maxClaw);
+                // MUDANÇA: Usa a nova API da garra.
+                claw.setClawOpen(false);
+                claw.setState(ClawSubsystem.ClawState.INTAKE);
                 intake.reverseIntake();
-                claw.clawWrist(ClawSubsystem.maxWristL, ClawSubsystem.maxWristR);
                 intakeState = StateMachine.AUTO_GRAB;
                 timeout = 200;
                 timer.reset();
             } else if (intakeState == StateMachine.AUTO_GRAB) {
                 intake.stopIntake();
-                claw.clawArm(ClawSubsystem.maxArmL, ClawSubsystem.maxArmR);
+                // MUDANÇA: Usa a nova API da garra.
+                claw.setState(ClawSubsystem.ClawState.SCORE);
                 intakeState = StateMachine.AUTO_RAISE;
                 timeout = 200;
                 timer.reset();
