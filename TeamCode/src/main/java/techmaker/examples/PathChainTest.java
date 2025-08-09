@@ -18,7 +18,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
 
-@Disabled
 @TeleOp
 public class PathChainTest extends OpMode {
     private Telemetry telemetryA;
@@ -28,10 +27,10 @@ public class PathChainTest extends OpMode {
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
     private final Pose StarPose = new Pose(1, 0, Math.toRadians(0));
     private final Pose Começo = new Pose(2, 0, Math.toRadians(0));
-    private final Pose Coletacima = new Pose(-95, 80, Math.toRadians(0));
-    private final Pose voltaEntrga = new Pose(40, 20, Math.toRadians(135));
-    private final Pose ColetaMeio = new Pose(120, 30, Math.toRadians(-90));
-    private final Pose entrega = new Pose(20, -20, Math.toRadians(135));
+    private final Pose Coletacima = new Pose(-80, 95, Math.toRadians(0));
+    private final Pose voltaEntrga = new Pose(20, 40, Math.toRadians(135));
+    private final Pose ColetaMeio = new Pose(30, 120, Math.toRadians(-90));
+    private final Pose entrega = new Pose(-20, -20, Math.toRadians(135));
     private boolean wasFollowing = false;
 
     @Override

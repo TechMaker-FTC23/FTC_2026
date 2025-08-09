@@ -74,7 +74,7 @@ public class TeleOp2 extends OpMode {
             state = StateMachine.START_INTAKE;
             intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
             intake.startIntake();
-            timeout = 100;
+            timeout = 200;
             timer.reset();
         } else if ((gamepad2.circle && state == StateMachine.INTAKING) ||
                 intake.isPixelDetected() && state==StateMachine.INTAKING){
@@ -104,6 +104,10 @@ public class TeleOp2 extends OpMode {
             intake.sliderMax();
             timeout = 100;
             timer.reset();
+        }
+
+        if (gamepad2.dpad_right){
+            intake.reverseIntake();
         }
 
         if (timer.milliseconds() > timeout) {
