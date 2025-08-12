@@ -20,9 +20,9 @@ Servos
 4 - front - anilha 4
 
 I2C
-2 - Cor
+0 - Cor
 1 - Otos
-0 - Pinpoint
+2 - Pinpoint
 
 Servo hub - all claw
 0 - rightarm

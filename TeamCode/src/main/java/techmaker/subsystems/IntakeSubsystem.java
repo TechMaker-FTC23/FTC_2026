@@ -1,21 +1,10 @@
 package techmaker.subsystems;
 
-<<<<<<< Updated upstream
 import android.graphics.Color;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-=======
-import android.graphics.drawable.ColorDrawable;
-
-import androidx.annotation.NonNull;
-
-import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.revrobotics.ColorSensorV3;
->>>>>>> Stashed changes
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
@@ -84,17 +73,11 @@ public class IntakeSubsystem {
         rightIntakeWrist = hardwareMap.get(Servo.class, Constants.Intake.RightWrist);
         leftIntakeSlider = hardwareMap.get(Servo.class, Constants.Intake.LeftSlider);
         rightIntakeSlider = hardwareMap.get(Servo.class, Constants.Intake.RightSlider);
-<<<<<<< Updated upstream
         try {
             colorSensor = hardwareMap.get(NormalizedColorSensor.class, COLOR_SENSOR_NAME);
         } catch (Exception e) {
             colorSensor = null;
         }
-=======
-        middleIntake.setDirection(CRServo.Direction.REVERSE);
-
-        colorSensor = hardwareMap.get(ColorSensor.class, COLOR_SENSOR_NAME);
->>>>>>> Stashed changes
         this.isRedAlliance = isRedAlliance;
         leftIntake.setDirection(CRServo.Direction.FORWARD);
         rightIntake.setDirection(CRServo.Direction.REVERSE);
@@ -106,7 +89,6 @@ public class IntakeSubsystem {
         stopIntake();
     }
 
-<<<<<<< Updated upstream
     public boolean isPixelDetected() {
         if (colorSensor == null) return false;
         /*NormalizedRGBA colors = colorSensor.getNormalizedColors();
@@ -136,15 +118,6 @@ public class IntakeSubsystem {
             if (isPixelDetected()) captureState = CaptureState.CAPTURED;
         } else if (captureState == CaptureState.CAPTURED) {
             stopIntake();
-=======
-    public void update(Telemetry telemetry) {
-        if (timer.time(TimeUnit.MILLISECONDS) > 20) {
-            timer.reset();
-            telemetry.addData("Red", colorSensor.red());
-            telemetry.addData("Blue", colorSensor.blue());
-            telemetry.addData("Green", colorSensor.green());
-            telemetry.addData("distance",colorSensor.)
->>>>>>> Stashed changes
         }
     }
 
