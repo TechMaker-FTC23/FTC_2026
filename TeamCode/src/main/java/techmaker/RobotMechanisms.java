@@ -5,6 +5,7 @@ import static techmaker.subsystems.IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.localization.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.pedropathing.follower.Follower;
@@ -15,6 +16,7 @@ import techmaker.constants.LConstants;
 import techmaker.subsystems.ClawSubsystem;
 import techmaker.subsystems.ElevatorSubsystem;
 import techmaker.subsystems.IntakeSubsystem;
+@Disabled
 
 @TeleOp
 public class RobotMechanisms extends OpMode {

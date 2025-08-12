@@ -182,18 +182,18 @@ public class IntakeSubsystem {
     public void update(Telemetry telemetry) {
         if (timer.time(TimeUnit.MILLISECONDS) > 50) {
             timer.reset();
-            telemetry.addData("Aliança", isRedAlliance ? "Vermelha" : "Azul");
-            telemetry.addData("Estado da Captura", captureState);
+            //telemetry.addData("Aliança", isRedAlliance ? "Vermelha" : "Azul");
+            //telemetry.addData("Estado da Captura", captureState);
             if (colorSensor != null) {
                 NormalizedRGBA colors = colorSensor.getNormalizedColors();
                 Color.colorToHSV(colors.toColor(), hsvValues);
-                telemetry.addData("Pixel Válido Detectado", isPixelDetected() ? "SIM" : "NÃO");
-                telemetry.addData("--- Sensor HSV ---", "");
-                telemetry.addData("Hue (Matiz)", "%.1f", hsvValues[0]);
-                telemetry.addData("Saturation (Saturação)", "%.3f", hsvValues[1]);
-                telemetry.addData("Value (Valor/Brilho)", "%.3f", hsvValues[2]);
+                //telemetry.addData("Pixel Válido Detectado", isPixelDetected() ? "SIM" : "NÃO");
+                //telemetry.addData("--- Sensor HSV ---", "");
+                //telemetry.addData("Hue (Matiz)", "%.1f", hsvValues[0]);
+                //telemetry.addData("Saturation (Saturação)", "%.3f", hsvValues[1]);
+                //telemetry.addData("Value (Valor/Brilho)", "%.3f", hsvValues[2]);
             } else {
-                telemetry.addData("SENSOR DE COR", "NÃO CONECTADO");
+                //telemetry.addData("SENSOR DE COR", "NÃO CONECTADO");
             }
         }
     }

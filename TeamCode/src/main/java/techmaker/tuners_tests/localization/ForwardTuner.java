@@ -44,7 +44,7 @@ import techmaker.constants.LConstants;
  * @version 1.0, 5/6/2024
  */
 @Disabled
-@Config
+//@Config
 @TeleOp(name = "Forward Localizer Tuner", group = ".Localization")
 public class ForwardTuner extends OpMode {
     private PoseUpdater poseUpdater;

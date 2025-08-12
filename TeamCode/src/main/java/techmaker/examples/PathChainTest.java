@@ -18,6 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
 
+@Disabled
 @TeleOp
 public class PathChainTest extends OpMode {
     private Telemetry telemetryA;

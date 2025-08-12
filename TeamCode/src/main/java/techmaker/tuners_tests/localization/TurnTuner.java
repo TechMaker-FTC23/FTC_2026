@@ -29,7 +29,7 @@ import techmaker.constants.LConstants;
  * @version 1.0, 5/6/2024
  */
 @Disabled
-@Config
+//@Config
 @Autonomous(name = "Turn Localizer Tuner", group = ".Localization")
 public class TurnTuner extends OpMode {
     private PoseUpdater poseUpdater;

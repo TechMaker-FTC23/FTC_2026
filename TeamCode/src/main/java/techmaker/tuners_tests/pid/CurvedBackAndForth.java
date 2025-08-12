@@ -29,7 +29,7 @@ import techmaker.constants.LConstants;
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 3/13/2024
  */
-@Config
+//@Config
 @Disabled
 @Autonomous (name = "Curved Back And Forth", group = "PIDF Testing")
 public class CurvedBackAndForth extends OpMode {

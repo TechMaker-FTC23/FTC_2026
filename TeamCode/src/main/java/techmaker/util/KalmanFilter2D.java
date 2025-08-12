@@ -4,7 +4,7 @@ package techmaker.util;
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.localization.Pose;
 
-@Config
+//@Config
 public class KalmanFilter2D {
 
     public static double Q_PROCESS_VARIANCE = 0.01;

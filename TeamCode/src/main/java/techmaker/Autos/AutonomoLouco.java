@@ -27,7 +27,7 @@ import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
 @Disabled
 
-@Config
+//@Config
 @Autonomous
 public class AutonomoLouco extends LinearOpMode {
 

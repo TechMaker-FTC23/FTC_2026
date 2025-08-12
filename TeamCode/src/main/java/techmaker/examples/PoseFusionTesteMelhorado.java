@@ -26,7 +26,7 @@ import techmaker.constants.LConstants;
 import techmaker.util.KalmanFilter2D; // Certifique-se que o caminho do pacote está correto
 @Disabled
 
-@Config
+//@Config
 @TeleOp
 public class PoseFusionTesteMelhorado extends LinearOpMode {
 

@@ -48,7 +48,7 @@ import techmaker.constants.LConstants;
  */
 @Disabled
 
-@Config
+//@Config
 @Autonomous(name = "Forward Velocity Tuner", group = "Automatic Tuners")
 public class ForwardVelocityTuner extends OpMode {
     private ArrayList<Double> velocities = new ArrayList<>();

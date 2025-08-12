@@ -8,7 +8,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class LConstants {
     static {
-        OTOSConstants.useCorrectedOTOSClass = false;
+        OTOSConstants.useCorrectedOTOSClass = true;
         OTOSConstants.hardwareMapName = "otos";
         OTOSConstants.linearUnit = DistanceUnit.CM;
         OTOSConstants.angleUnit = AngleUnit.RADIANS;

@@ -4,9 +4,12 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
+import com.pedropathing.util.Drawing;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
@@ -24,18 +27,17 @@ public class TeleOp2 extends OpMode {
 
     private StateMachine state = StateMachine.IDLE;
     private StateMachine stateClawSample = StateMachine.CLAW_SPECIMENT;
+    private final Pose startPose = new Pose(0,0,0);
 
     private final ElapsedTime timer = new ElapsedTime();
     private long timeout = 0;
-
-    private double headingOffset = 0;
 
     @Override
     public void init() {
         telemetry = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
 
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
-        follower.setStartingPose(new Pose(0, 0, 0));
+        follower.setStartingPose(startPose);
 
         claw = new ClawSubsystem(hardwareMap);
         elevator = new ElevatorSubsystem(hardwareMap);
@@ -57,16 +59,12 @@ public class TeleOp2 extends OpMode {
     public void start() {
         follower.startTeleopDrive();
         timer.reset();
-        headingOffset = follower.poseUpdater.getPose().getHeading();
     }
 
     @Override
     public void loop() {
-        double y_stick = gamepad1.left_stick_y;
-        double x_stick = -gamepad1.left_stick_x;
-        double turn_stick = -gamepad1.right_stick_x;
-
-        follower.setTeleOpMovementVectors(y_stick, x_stick, turn_stick, false);
+        follower.setTeleOpMovementVectors(gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, false);
+        follower.update();
 
         intake.maintainSliderPosition();
 
@@ -163,18 +161,14 @@ public class TeleOp2 extends OpMode {
             }
         }
 
-        follower.update();
-        claw.update(telemetry);
+        Pose pose = follower.getPose();
+        //claw.update(telemetry);
         elevator.update(telemetry);
         intake.update(telemetry);
-        telemetry.addData("Main State", state);
-        telemetry.addData("Claw State", stateClawSample);
+        //telemetry.addData("Main State", state);
+        //telemetry.addData("Claw State", stateClawSample);
+        telemetry.addData("Pose",pose);
         telemetry.update();
     }
 
-    private double normalizeAngle(double angle) {
-        while (angle > Math.PI) angle -= 2 * Math.PI;
-        while (angle < -Math.PI) angle += 2 * Math.PI;
-        return angle;
-    }
 }

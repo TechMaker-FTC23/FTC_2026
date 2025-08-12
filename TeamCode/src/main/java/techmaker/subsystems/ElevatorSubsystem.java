@@ -167,7 +167,7 @@ public class ElevatorSubsystem {
         }
 
         // Atualiza a telemetria
-        sendTelemetry(telemetry);
+        //sendTelemetry(telemetry);
     }
 
     /**
