@@ -35,8 +35,8 @@ public class ClawSubsystem {
     // Posições para o estado SCORE
     public static double ARM_LEFT_SCORE_CLAW = 0.10;
     public static double ARM_RIGHT_SCORE_CLAW = 0.9;
-    public static double WRIST_LEFT_SCORE_CLAW = 0.8;
-    public static double WRIST_RIGHT_SCORE_CLAW = 0.2;
+    public static double WRIST_LEFT_SCORE_CLAW = 0.6;
+    public static double WRIST_RIGHT_SCORE_CLAW = 0.4;
 
     // Posições da Garra Central (aberta/fechada)
     public static double CLAW_OPEN = 0.4;

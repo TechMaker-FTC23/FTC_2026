@@ -30,8 +30,8 @@ public class IntakeSubsystem {
 
     public static double LEFT_INTAKE_SLIDER_MAX = 0.4;
     public static double RIGHT_INTAKE_SLIDER_MAX = 0.6;
-    public static double LEFT_INTAKE_SLIDER_MED = 0.7;
-    public static double RIGHT_INTAKE_SLIDER_MED = 0.3;
+    public static double LEFT_INTAKE_SLIDER_MED = 0.8;
+    public static double RIGHT_INTAKE_SLIDER_MED = 0.2;
     public static double LEFT_INTAKE_SLIDER_MIN = 0.8;
     public static double RIGHT_INTAKE_SLIDER_MIN = 0.2;
 

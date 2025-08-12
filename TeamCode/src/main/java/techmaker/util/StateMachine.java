@@ -10,6 +10,7 @@ public enum StateMachine {
     IDLE,
     TRAVELLING,
     START_INTAKE,
+    MEDIUM_INTAKE,
     INTAKE_AVANCE,
     INTAKING,
     RETURNING_INTAKE,

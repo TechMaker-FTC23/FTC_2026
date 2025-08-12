@@ -73,7 +73,6 @@ public class TeleOp2 extends OpMode {
         double rotatedY = x * Math.sin(-heading) + y * Math.cos(-heading);
 
         follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn, true);
-        //follower.setTeleOpMovementVectors(gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, false);
         follower.update();
 
         intake.maintainSliderPosition();
@@ -123,7 +122,8 @@ public class TeleOp2 extends OpMode {
                 intake.sliderMax();
 
                 state = StateMachine.INTAKING;
-            } else if (state == StateMachine.RETURNING_INTAKE) {
+            }
+             else if (state == StateMachine.RETURNING_INTAKE) {
                 intake.sliderMin();
                 state = StateMachine.IDLE;
             } else if (state == StateMachine.AUTO_CYCLE_START) {
