@@ -15,6 +15,14 @@ public class Constants {
         public static String RightSlider = "rightslider";
         public static String LeftWrist = "leftwrist";
         public static String RightWrist = "rightwrist";
+        public static double RedMin = 10.0;
+        public static double RedMax = 50.0;
+        public static double YellowMin = 51.0;
+        public static double YellowMax=110.0;
+        public static double BlueMin = 180.0;
+        public static double BlueMax = 250.0;
+        public enum SampleColor {Red,Yellow,Blue,Idle};
+
 
     }
     public static class Claw {

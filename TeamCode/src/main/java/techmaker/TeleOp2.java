@@ -55,12 +55,17 @@ public class TeleOp2 extends OpMode {
         telemetry.addData("Status", "TeleOp Principal Inicializado");
         telemetry.update();
     }
-
+    @Override
+    public void init_loop() {
+        intake.update(telemetry);
+        telemetry.update();
+    }
     @Override
     public void start() {
         follower.startTeleopDrive();
         timer.reset();
     }
+
 
     @Override
     public void loop() {
@@ -83,13 +88,12 @@ public class TeleOp2 extends OpMode {
             intake.startIntake();
             timeout = 200;
             timer.reset();
-        } else if ((gamepad2.circle && state == StateMachine.INTAKING) ||
-                intake.isPixelDetected() && state==StateMachine.INTAKING){
-            state = StateMachine.RETURNING_INTAKE;
-            intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
-            intake.stopIntake();
+        } else if (state == StateMachine.INTAKING &&(gamepad2.circle || intake.isPixelDetected())){
+            state = StateMachine.INTAKE_DETECTING;
             timeout = 100;
             timer.reset();
+
+
         }
 
         if (gamepad2.right_bumper && stateClawSample == StateMachine.CLAW_SPECIMENT) {
@@ -117,13 +121,34 @@ public class TeleOp2 extends OpMode {
             intake.reverseIntake();
         }
 
+        if(state == StateMachine.REVERTING_INTAKE && !intake.isPixelDetected()){
+            state = StateMachine.RETURNING_INTAKE;
+            intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
+            intake.stopIntake();
+            timeout = 100;
+            timer.reset();
+        }
         if (timer.milliseconds() > timeout) {
             if (state == StateMachine.START_INTAKE) {
                 intake.sliderMax();
 
                 state = StateMachine.INTAKING;
             }
+            else if(state==StateMachine.INTAKE_DETECTING){
+                if(intake.isSampleCorrectAlliance()){
+                    state = StateMachine.RETURNING_INTAKE;
+                    intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
+                    intake.stopIntake();
+                    timeout = 100;
+                    timer.reset();
+                }
+                else{
+                    intake.reverseIntake();
+                    state = StateMachine.REVERTING_INTAKE;
+                }
+            }
              else if (state == StateMachine.RETURNING_INTAKE) {
+                 intake.stopIntake();
                 intake.sliderMin();
                 state = StateMachine.IDLE;
             } else if (state == StateMachine.AUTO_CYCLE_START) {
@@ -175,7 +200,7 @@ public class TeleOp2 extends OpMode {
         //claw.update(telemetry);
         elevator.update(telemetry);
         intake.update(telemetry);
-        //telemetry.addData("Main State", state);
+        telemetry.addData("Main State", state);
         //telemetry.addData("Claw State", stateClawSample);
         telemetry.addData("Pose",pose);
         telemetry.update();

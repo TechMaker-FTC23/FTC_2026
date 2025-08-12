@@ -10,7 +10,8 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import techmaker.constants.Constants;
+import techmaker.constants.Constants.Intake.*;
+import techmaker.constants.Constants.Intake;
 
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -35,17 +36,6 @@ public class IntakeSubsystem {
     public static double LEFT_INTAKE_SLIDER_MIN = 0.8;
     public static double RIGHT_INTAKE_SLIDER_MIN = 0.2;
 
-    // --- Constantes para Detecção de Cor no Espaço HSV ---
-    public static double YELLOW_HUE_MIN = 40.0;
-    public static double YELLOW_HUE_MAX = 70.0;
-    public static double RED_HUE_MIN_1 = 0.0;
-    public static double RED_HUE_MAX_1 = 20.0;
-    public static double RED_HUE_MIN_2 = 340.0;
-    public static double RED_HUE_MAX_2 = 360.0;
-    public static double BLUE_HUE_MIN = 210.0;
-    public static double BLUE_HUE_MAX = 260.0;
-    public static double MIN_SATURATION = 0.5;
-    public static double MIN_VALUE = 0.2;
 
     public enum CaptureState { IDLE, SEARCHING, CAPTURED }
 
@@ -66,13 +56,13 @@ public class IntakeSubsystem {
     private CaptureState captureState = CaptureState.IDLE;
 
     public IntakeSubsystem(HardwareMap hardwareMap, boolean isRedAlliance) {
-        leftIntake = hardwareMap.get(CRServo.class,Constants.Intake.Left);
-        rightIntake = hardwareMap.get(CRServo.class, Constants.Intake.Right);
-        middleIntake = hardwareMap.get(CRServo.class, Constants.Intake.Middle);
-        leftIntakeWrist = hardwareMap.get(Servo.class, Constants.Intake.LeftWrist);
-        rightIntakeWrist = hardwareMap.get(Servo.class, Constants.Intake.RightWrist);
-        leftIntakeSlider = hardwareMap.get(Servo.class, Constants.Intake.LeftSlider);
-        rightIntakeSlider = hardwareMap.get(Servo.class, Constants.Intake.RightSlider);
+        leftIntake = hardwareMap.get(CRServo.class,Intake.Left);
+        rightIntake = hardwareMap.get(CRServo.class, Intake.Right);
+        middleIntake = hardwareMap.get(CRServo.class, Intake.Middle);
+        leftIntakeWrist = hardwareMap.get(Servo.class, Intake.LeftWrist);
+        rightIntakeWrist = hardwareMap.get(Servo.class, Intake.RightWrist);
+        leftIntakeSlider = hardwareMap.get(Servo.class, Intake.LeftSlider);
+        rightIntakeSlider = hardwareMap.get(Servo.class, Intake.RightSlider);
         try {
             colorSensor = hardwareMap.get(NormalizedColorSensor.class, COLOR_SENSOR_NAME);
         } catch (Exception e) {
@@ -91,20 +81,6 @@ public class IntakeSubsystem {
 
     public boolean isPixelDetected() {
         if (colorSensor == null) return false;
-        /*NormalizedRGBA colors = colorSensor.getNormalizedColors();
-        Color.colorToHSV(colors.toColor(), hsvValues);
-
-        float hue = hsvValues[0], saturation = hsvValues[1], value = hsvValues[2];
-
-        if (saturation < MIN_SATURATION || value < MIN_VALUE) return false;
-
-        if (hue >= YELLOW_HUE_MIN && hue <= YELLOW_HUE_MAX) return true;
-
-        if (isRedAlliance) {
-            return (hue >= RED_HUE_MIN_1 && hue <= RED_HUE_MAX_1) || (hue >= RED_HUE_MIN_2 && hue <= RED_HUE_MAX_2);
-        } else {
-            return (hue >= BLUE_HUE_MIN && hue <= BLUE_HUE_MAX);
-        }*/
         return (((DistanceSensor) colorSensor).getDistance(DistanceUnit.CM)<3);
     }
 
@@ -138,6 +114,7 @@ public class IntakeSubsystem {
     public void reverseIntake() {
         leftIntake.setPower(1.0);
         rightIntake.setPower(1.0);
+        middleIntake.setPower(1.0);
     }
 
     public void stopIntake() {
@@ -178,22 +155,45 @@ public class IntakeSubsystem {
     public void wristMin(){
         wrist(LEFT_INTAKE_WRIST_MIN, RIGHT_INTAKE_WRIST_MIN);
     }
-
+    public SampleColor getColor(){
+        NormalizedRGBA colors = colorSensor.getNormalizedColors();
+        Color.colorToHSV(colors.toColor(), hsvValues);
+        if(hsvValues[0]>=Intake.RedMin && hsvValues[0]<=Intake.RedMax){
+            return SampleColor.Red;
+        }
+        if(hsvValues[0]>=Intake.YellowMin && hsvValues[0]<=Intake.YellowMax){
+            return SampleColor.Yellow;
+        }
+        if(hsvValues[0]>=Intake.BlueMin && hsvValues[0]<=Intake.BlueMax){
+            return SampleColor.Blue;
+        }
+        return SampleColor.Idle;
+    }
+    public boolean isSampleCorrectAlliance(){
+        if ((isRedAlliance && getColor() == SampleColor.Red) ||
+                (!isRedAlliance && getColor() == SampleColor.Blue) ||
+                (getColor() == SampleColor.Yellow)){
+            return true;
+        }
+        return false;
+    }
     public void update(Telemetry telemetry) {
         if (timer.time(TimeUnit.MILLISECONDS) > 50) {
             timer.reset();
-            //telemetry.addData("Aliança", isRedAlliance ? "Vermelha" : "Azul");
+            telemetry.addData("Aliança", isRedAlliance ? "Vermelha" : "Azul");
             //telemetry.addData("Estado da Captura", captureState);
             if (colorSensor != null) {
-                NormalizedRGBA colors = colorSensor.getNormalizedColors();
-                Color.colorToHSV(colors.toColor(), hsvValues);
-                //telemetry.addData("Pixel Válido Detectado", isPixelDetected() ? "SIM" : "NÃO");
-                //telemetry.addData("--- Sensor HSV ---", "");
-                //telemetry.addData("Hue (Matiz)", "%.1f", hsvValues[0]);
-                //telemetry.addData("Saturation (Saturação)", "%.3f", hsvValues[1]);
-                //telemetry.addData("Value (Valor/Brilho)", "%.3f", hsvValues[2]);
+                telemetry.addData("Sample", getColor());
+                telemetry.addData("Pixel Válido Detectado", isPixelDetected() ? "SIM" : "NÃO");
+                telemetry.addData("Pixel Válido Aliança", isSampleCorrectAlliance() ? "SIM" : "NÃO");
+                telemetry.addData("--- Sensor HSV ---", "");
+                telemetry.addData("Hue (Matiz)", "%.1f", hsvValues[0]);
+                telemetry.addData("Saturation (Saturação)", "%.3f", hsvValues[1]);
+                telemetry.addData("Value (Valor/Brilho)", "%.3f", hsvValues[2]);
+
+
             } else {
-                //telemetry.addData("SENSOR DE COR", "NÃO CONECTADO");
+                telemetry.addData("SENSOR DE COR", "NÃO CONECTADO");
             }
         }
     }
