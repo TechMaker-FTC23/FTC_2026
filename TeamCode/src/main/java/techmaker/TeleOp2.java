@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
@@ -63,7 +64,16 @@ public class TeleOp2 extends OpMode {
 
     @Override
     public void loop() {
-        follower.setTeleOpMovementVectors(gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, false);
+        double heading = follower.getPose().getHeading();
+        double y = gamepad1.left_stick_y;
+        double x = -gamepad1.left_stick_x;
+        double turn = -gamepad1.right_stick_x;
+
+        double rotatedX = x * Math.cos(-heading) - y * Math.sin(-heading);
+        double rotatedY = x * Math.sin(-heading) + y * Math.cos(-heading);
+
+        follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn, true);
+        //follower.setTeleOpMovementVectors(gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, false);
         follower.update();
 
         intake.maintainSliderPosition();
