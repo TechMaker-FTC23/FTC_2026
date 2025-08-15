@@ -130,10 +130,7 @@ public class TeleOP extends OpMode {
                 intake.sliderMax();
                 state = StateMachine.INTAKE_SETUP;
                 break;
-            case START_INTAKE_MEDIUM:
-                intake.sliderMedium();
-                state = StateMachine.INTAKE_SETUP;
-                break;
+            
             case INTAKE_SETUP:
                 intake.resetCaptureState();
                 intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);

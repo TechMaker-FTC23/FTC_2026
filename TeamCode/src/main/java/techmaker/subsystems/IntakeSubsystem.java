@@ -29,12 +29,10 @@ public class IntakeSubsystem {
     public static double LEFT_INTAKE_WRIST_MIN = 0.32;
     public static double RIGHT_INTAKE_WRIST_MIN = 0.68;
 
-    public static double LEFT_INTAKE_SLIDER_MAX = 0.4;
-    public static double RIGHT_INTAKE_SLIDER_MAX = 0.6;
-    public static double LEFT_INTAKE_SLIDER_MED = 0.8;
-    public static double RIGHT_INTAKE_SLIDER_MED = 0.2;
-    public static double LEFT_INTAKE_SLIDER_MIN = 0.8;
-    public static double RIGHT_INTAKE_SLIDER_MIN = 0.2;
+    public static double LEFT_INTAKE_SLIDER_MAX = 1;
+    public static double RIGHT_INTAKE_SLIDER_MAX = 0;
+    public static double LEFT_INTAKE_SLIDER_MIN = 0;
+    public static double RIGHT_INTAKE_SLIDER_MIN = 1;
 
 
     public enum CaptureState { IDLE, SEARCHING, CAPTURED }
@@ -140,9 +138,6 @@ public class IntakeSubsystem {
         slider(LEFT_INTAKE_SLIDER_MAX, RIGHT_INTAKE_SLIDER_MAX);
     }
 
-    public void sliderMedium() {
-        slider(LEFT_INTAKE_SLIDER_MED, RIGHT_INTAKE_SLIDER_MED);
-    }
 
     public void sliderMin() {
         slider(LEFT_INTAKE_SLIDER_MIN, RIGHT_INTAKE_SLIDER_MIN);
