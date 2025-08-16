@@ -23,17 +23,24 @@ android {
     }
 
     compileSdk 35
+    androidResources {
+        noCompress 'tflite'
+    }
 
     defaultConfig {
         minSdk 24
     }
     packagingOptions {
+        jniLibs {
+            pickFirsts += ['**/*.so']
+        }
         jniLibs.useLegacyPackaging true
     }
 }
 
 dependencies {
     implementation project(':FtcRobotController')
+    implementation 'org.ejml:ejml-simple:0.43.1' // Or the latest version
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
 
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.7'

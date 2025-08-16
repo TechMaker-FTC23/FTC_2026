@@ -10,9 +10,11 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.pedropathing.follower.Follower;
 
+
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
 
+import techmaker.core.ftclib.command.CommandScheduler;
 import techmaker.subsystems.ClawSubsystem;
 import techmaker.subsystems.ElevatorSubsystem;
 import techmaker.subsystems.IntakeSubsystem;
@@ -36,9 +38,9 @@ public class RobotMechanisms extends OpMode {
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setStartingPose(startPose);
 
-        claw = new ClawSubsystem(hardwareMap);
-        elevator = new ElevatorSubsystem(hardwareMap);
-        intake = new IntakeSubsystem(hardwareMap, false);
+        claw = new ClawSubsystem(hardwareMap,telemetry);
+        elevator = new ElevatorSubsystem(hardwareMap,telemetry);
+        intake = new IntakeSubsystem(hardwareMap, false,telemetry);
 
         // --- MUDANÇA: Configuração inicial da garra usando a nova API ---
         // Define a posição inicial segura com um único comando.
@@ -118,9 +120,8 @@ public class RobotMechanisms extends OpMode {
             elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
         }
 
-        claw.update(telemetry);
-        elevator.update(telemetry);
-        intake.update(telemetry);
+        claw.periodic();
+        CommandScheduler.getInstance().run();
         telemetry.update();
     }
 }

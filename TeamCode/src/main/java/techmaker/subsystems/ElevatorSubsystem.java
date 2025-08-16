@@ -12,10 +12,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 import java.util.concurrent.TimeUnit;
 
+import techmaker.core.ftclib.command.SubsystemBase;
+
 import techmaker.constants.Constants;
 
 @Config
-public class ElevatorSubsystem {
+public class ElevatorSubsystem extends SubsystemBase {
 
     // --- Motores ---
     private final DcMotorEx LeftElevator;
@@ -44,12 +46,13 @@ public class ElevatorSubsystem {
     private final ElapsedTime pidTimer = new ElapsedTime();
     private double lastError = 0;
     private double integralSum = 0;
-
+    private Telemetry telemetry;
     /**
      * Construtor da classe do subsistema do elevador.
      * @param hardwareMap O mapa de hardware do robô.
      */
-    public ElevatorSubsystem(@NonNull HardwareMap hardwareMap) {
+    public ElevatorSubsystem(@NonNull HardwareMap hardwareMap, @NonNull Telemetry telemetry) {
+        this.telemetry = telemetry;
         // Inicialização dos motores
         LeftElevator = hardwareMap.get(DcMotorEx.class, Constants.Elevator.LeftElevator);
         RightElevator = hardwareMap.get(DcMotorEx.class, Constants.Elevator.RightElevator);
@@ -130,7 +133,7 @@ public class ElevatorSubsystem {
      * Executa o cálculo do PID se estiver ativo e envia dados para a telemetria.
      * @param telemetry O objeto de telemetria para exibir informações.
      */
-    public void update(Telemetry telemetry) {
+    public void periodic() {
         // Atualiza o controle PID se estiver ativo
         if (isPidActive) {
             int currentPosition = getCurrentPosition();

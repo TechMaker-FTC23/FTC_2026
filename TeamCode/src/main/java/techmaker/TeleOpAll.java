@@ -42,6 +42,8 @@ public class TeleOpAll extends OpMode {
 
     @Override
     public void init() {
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
         imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(new IMU.Parameters(
                 new RevHubOrientationOnRobot(
@@ -52,13 +54,12 @@ public class TeleOpAll extends OpMode {
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setStartingPose(startPose);
 
-        claw = new ClawSubsystem(hardwareMap);
-        intake = new IntakeSubsystem(hardwareMap, false);
-        elevator = new ElevatorSubsystem(hardwareMap);
+        claw = new ClawSubsystem(hardwareMap,telemetry);
+        intake = new IntakeSubsystem(hardwareMap, false,telemetry);
+        elevator = new ElevatorSubsystem(hardwareMap,telemetry);
 
         stateManager = new RobotStateManager(intake, claw);
 
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
     }
 
     @Override

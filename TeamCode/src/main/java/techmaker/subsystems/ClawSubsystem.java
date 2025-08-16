@@ -6,10 +6,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import techmaker.core.ftclib.command.SubsystemBase;
 import techmaker.constants.Constants;
 
 @Config
-public class ClawSubsystem {
+public class ClawSubsystem extends SubsystemBase {
 
     // Enum para representar os estados da garra de forma clara.
     public enum ClawState {
@@ -49,8 +50,9 @@ public class ClawSubsystem {
     private Servo rightClawWrist;
     private Servo leftClawArm;
     private Servo rightClawArm;
-
-    public ClawSubsystem(@NonNull HardwareMap hardwareMap) {
+    private Telemetry telemetry;
+    public ClawSubsystem(@NonNull HardwareMap hardwareMap,@NonNull Telemetry telemetry) {
+        this.telemetry = telemetry;
         // Mapeamento robusto com try-catch
         try {
             middleClawServo = hardwareMap.get(Servo.class, Constants.Claw.MiddleClaw);
@@ -119,7 +121,7 @@ public class ClawSubsystem {
         if (middleClawServo != null) middleClawServo.setPosition(position);
     }
 
-    public void update(Telemetry telemetry) {
+    public void periodic() {
         telemetry.addData("Claw Servo", (middleClawServo != null) ? "OK" : "NÃO CONECTADO");
         telemetry.addData("Wrist Servos", (leftClawWrist != null && rightClawWrist != null) ? "OK" : "NÃO CONECTADO");
         telemetry.addData("Arm Servos", (leftClawArm != null && rightClawArm != null) ? "OK" : "NÃO CONECTADO");

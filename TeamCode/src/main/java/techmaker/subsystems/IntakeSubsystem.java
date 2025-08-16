@@ -10,8 +10,10 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
 import techmaker.constants.Constants.Intake.*;
 import techmaker.constants.Constants.Intake;
+import techmaker.core.ftclib.command.SubsystemBase;
 
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -20,7 +22,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import java.util.concurrent.TimeUnit;
 
 @Config
-public class IntakeSubsystem {
+public class IntakeSubsystem extends SubsystemBase {
 
     public static final String COLOR_SENSOR_NAME = "colorSensor";
 
@@ -54,8 +56,9 @@ public class IntakeSubsystem {
     private final boolean isRedAlliance;
     private final float[] hsvValues = new float[3];
     private CaptureState captureState = CaptureState.IDLE;
-
-    public IntakeSubsystem(HardwareMap hardwareMap, boolean isRedAlliance) {
+    private Telemetry telemetry;
+    public IntakeSubsystem(HardwareMap hardwareMap, boolean isRedAlliance, Telemetry telemetry) {
+        this.telemetry = telemetry;
         leftIntake = hardwareMap.get(CRServo.class,Intake.Left);
         rightIntake = hardwareMap.get(CRServo.class, Intake.Right);
         middleIntake = hardwareMap.get(CRServo.class, Intake.Middle);
@@ -177,7 +180,8 @@ public class IntakeSubsystem {
         }
         return false;
     }
-    public void update(Telemetry telemetry) {
+
+    public void periodic() {
         if (timer.time(TimeUnit.MILLISECONDS) > 50) {
             timer.reset();
             telemetry.addData("Aliança", isRedAlliance ? "Vermelha" : "Azul");

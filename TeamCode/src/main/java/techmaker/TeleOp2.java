@@ -12,6 +12,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
+import techmaker.core.ftclib.command.CommandScheduler;
+
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
 import techmaker.subsystems.ClawSubsystem;
@@ -40,9 +42,9 @@ public class TeleOp2 extends OpMode {
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setStartingPose(startPose);
 
-        claw = new ClawSubsystem(hardwareMap);
-        elevator = new ElevatorSubsystem(hardwareMap);
-        intake = new IntakeSubsystem(hardwareMap, false);
+        claw = new ClawSubsystem(hardwareMap,telemetry);
+        elevator = new ElevatorSubsystem(hardwareMap,telemetry);
+        intake = new IntakeSubsystem(hardwareMap, false,telemetry);
 
         // MUDANÇA: Define a posição inicial segura da garra com um único comando.
         claw.setState(ClawSubsystem.ClawState.TRAVEL);
@@ -57,7 +59,7 @@ public class TeleOp2 extends OpMode {
     }
     @Override
     public void init_loop() {
-        intake.update(telemetry);
+        CommandScheduler.getInstance().run();
         telemetry.update();
     }
     @Override
@@ -195,11 +197,8 @@ public class TeleOp2 extends OpMode {
                 stateClawSample = StateMachine.CLAW_SPECIMENT;
             }
         }
-
+        CommandScheduler.getInstance().run();
         Pose pose = follower.getPose();
-        //claw.update(telemetry);
-        elevator.update(telemetry);
-        intake.update(telemetry);
         telemetry.addData("Main State", state);
         //telemetry.addData("Claw State", stateClawSample);
         telemetry.addData("Pose",pose);

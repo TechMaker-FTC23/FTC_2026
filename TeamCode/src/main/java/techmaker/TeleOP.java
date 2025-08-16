@@ -31,9 +31,9 @@ public class TeleOP extends OpMode {
         telemetry = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
 
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
-        claw = new ClawSubsystem(hardwareMap);
-        elevator = new ElevatorSubsystem(hardwareMap);
-        intake = new IntakeSubsystem(hardwareMap, false); // Defina a aliança aqui
+        claw = new ClawSubsystem(hardwareMap,telemetry);
+        elevator = new ElevatorSubsystem(hardwareMap,telemetry);
+        intake = new IntakeSubsystem(hardwareMap, false,telemetry); // Defina a aliança aqui
 
         // Posição inicial segura do robô
         claw.setState(ClawSubsystem.ClawState.TRAVEL);
