@@ -2,7 +2,6 @@ package techmaker.subsystems;
 
 import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -10,34 +9,34 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import techmaker.constants.Constants;
 
 @Config
-public class ClawSubsystem extends SubsystemBase {
+public class ClawSubsystem {
 
     // Enum para representar os estados da garra de forma clara.
     public enum ClawState {
         INTAKE,  // Posição para pegar os pixels do intake
         TRAVEL,  // Posição segura para se movimentar pelo campo
-        SCORE    // Posição para pontuar no backdrop
+        SCORE    // Posição para pontuar no basket
     }
 
     // --- Constantes de Posição com Nomes Clarificados ---
     // Posições para o estado INTAKE
-    public static double ARM_LEFT_INTAKE_CLAW = 0.8;
-    public static double ARM_RIGHT_INTAKE_CLAW = 0.2;
+    public static double ARM_LEFT_INTAKE_CLAW = 0;
+    public static double ARM_RIGHT_INTAKE_CLAW = 1;
 
     public static double WRIST_LEFT_INTAKE_CLAW = 0.7;
     public static double WRIST_RIGHT_INTAKE_CLAW = 0.3;
 
     // Posições para o estado TRAVEL (intermediário)
-    public static double ARM_LEFT_TRAVEL_CLAW = 0.7;
-    public static double ARM_RIGHT_TRAVEL_CLAW = 0.3;
-    public static double WRIST_LEFT_TRAVEL_CLAW = 0.8;
-    public static double WRIST_RIGHT_TRAVEL_CLAW = 0.2;
+    public static double ARM_LEFT_TRAVEL_CLAW = 0.1;
+    public static double ARM_RIGHT_TRAVEL_CLAW = 0.9;
+    public static double WRIST_LEFT_TRAVEL_CLAW = 0.9;
+    public static double WRIST_RIGHT_TRAVEL_CLAW = 0.1;
 
     // Posições para o estado SCORE
-    public static double ARM_LEFT_SCORE_CLAW = 0.10;
-    public static double ARM_RIGHT_SCORE_CLAW = 0.9;
-    public static double WRIST_LEFT_SCORE_CLAW = 0.6;
-    public static double WRIST_RIGHT_SCORE_CLAW = 0.4;
+    public static double ARM_LEFT_SCORE_CLAW = 0.45;
+    public static double ARM_RIGHT_SCORE_CLAW = 0.55;
+    public static double WRIST_LEFT_SCORE_CLAW = 0.25;
+    public static double WRIST_RIGHT_SCORE_CLAW = 0.75;
 
     // Posições da Garra Central (aberta/fechada)
     public static double CLAW_OPEN = 0.4;

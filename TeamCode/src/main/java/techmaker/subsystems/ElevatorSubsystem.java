@@ -34,7 +34,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     public static int ELEVATOR_PRESET_HIGH = 2000;
 
     // --- Constantes de Tuning do PID ---
-    public static double PID_P = 0.01;
+    public static double PID_P = 0.015;
     public static double PID_I = 0.0;
     public static double PID_D = 0.0001;
     public static double GRAVITY_FF = 0.08; // Feedforward para compensar a gravidade

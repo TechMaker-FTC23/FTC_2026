@@ -83,6 +83,7 @@ public class TeleOp2 extends OpMode {
 
         intake.maintainSliderPosition();
 
+
         if (gamepad2.triangle && state == StateMachine.IDLE) {
             state = StateMachine.START_INTAKE;
             intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
@@ -137,10 +138,11 @@ public class TeleOp2 extends OpMode {
             }
             else if(state==StateMachine.INTAKE_DETECTING){
                 if(intake.isSampleCorrectAlliance()){
+                    gamepad1.rumble(200);
                     state = StateMachine.RETURNING_INTAKE;
                     intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
                     intake.stopIntake();
-                    timeout = 100;
+                    timeout = 30;
                     timer.reset();
                 }
                 else{
