@@ -29,10 +29,8 @@ public class IntakeSubsystem {
     public static double LEFT_INTAKE_WRIST_MIN = 0.32;
     public static double RIGHT_INTAKE_WRIST_MIN = 0.68;
 
-    public static double LEFT_INTAKE_SLIDER_MAX = 1;
-    public static double RIGHT_INTAKE_SLIDER_MAX = 0;
-    public static double LEFT_INTAKE_SLIDER_MIN = 0;
-    public static double RIGHT_INTAKE_SLIDER_MIN = 1;
+    public static double INTAKE_SLIDER_MAX = 0.35;
+    public static double INTAKE_SLIDER_MIN = 0.65;
 
 
     public enum CaptureState { IDLE, SEARCHING, CAPTURED }
@@ -70,8 +68,8 @@ public class IntakeSubsystem {
         leftIntake.setDirection(CRServo.Direction.FORWARD);
         rightIntake.setDirection(CRServo.Direction.REVERSE);
         middleIntake.setDirection(CRServo.Direction.FORWARD);
-        lastLeftSliderPos = LEFT_INTAKE_SLIDER_MIN;
-        lastRightSliderPos = RIGHT_INTAKE_SLIDER_MIN;
+        lastLeftSliderPos = INTAKE_SLIDER_MIN;
+        lastRightSliderPos = 1.0-INTAKE_SLIDER_MIN;
         slider(lastLeftSliderPos, lastRightSliderPos);
         timer.reset();
         stopIntake();
@@ -135,12 +133,12 @@ public class IntakeSubsystem {
 
     // --- NOVOS MÉTODOS DE CONVENIÊNCIA PARA O SLIDER ---
     public void sliderMax() {
-        slider(LEFT_INTAKE_SLIDER_MAX, RIGHT_INTAKE_SLIDER_MAX);
+        slider(INTAKE_SLIDER_MAX, 1.0-INTAKE_SLIDER_MAX);
     }
 
 
     public void sliderMin() {
-        slider(LEFT_INTAKE_SLIDER_MIN, RIGHT_INTAKE_SLIDER_MIN);
+        slider(INTAKE_SLIDER_MIN, 1.0-INTAKE_SLIDER_MIN);
     }
 
     public void maintainSliderPosition() {

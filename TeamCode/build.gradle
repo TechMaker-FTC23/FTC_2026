@@ -41,6 +41,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.10.0'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
-
+    implementation 'org.ftclib.ftclib:core:2.1.1' // core
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.1.0'
+
 }

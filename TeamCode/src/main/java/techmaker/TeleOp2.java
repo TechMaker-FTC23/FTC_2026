@@ -57,6 +57,7 @@ public class TeleOp2 extends OpMode {
     }
     @Override
     public void init_loop() {
+        intake.sliderMin();
         intake.update(telemetry);
         telemetry.update();
     }

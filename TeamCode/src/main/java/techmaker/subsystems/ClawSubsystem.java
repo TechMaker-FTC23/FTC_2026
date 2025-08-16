@@ -2,6 +2,7 @@ package techmaker.subsystems;
 
 import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
+import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -9,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import techmaker.constants.Constants;
 
 @Config
-public class ClawSubsystem {
+public class ClawSubsystem extends SubsystemBase {
 
     // Enum para representar os estados da garra de forma clara.
     public enum ClawState {
