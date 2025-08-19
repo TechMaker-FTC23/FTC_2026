@@ -28,7 +28,7 @@ import techmaker.constants.LConstants;
  * @author Anyi Lin - 10158 Scott's Bots
  * @version 1.0, 5/6/2024
  */
-
+@Disabled
 @Config
 @Autonomous(name = "Turn Localizer Tuner", group = ".Localization")
 public class TurnTuner extends OpMode {
