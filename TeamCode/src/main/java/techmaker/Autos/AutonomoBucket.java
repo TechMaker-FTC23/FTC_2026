@@ -36,7 +36,7 @@ public class AutonomoBucket extends LinearOpMode {
     // --- Poses de Jogo Otimizadas para Precisão ---
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
 
-    // Posição de entrega no Goal (Backdrop)
+    // Posição de entrega
     private final Pose entrega = new Pose(-20, -20, Math.toRadians(135));
     // Ponto de controlo para o arco largo
     private final Pose viaPointEntrega = new Pose(40, 20, Math.toRadians(90));
@@ -50,7 +50,7 @@ public class AutonomoBucket extends LinearOpMode {
     private final Pose ColetaMeio = new Pose(100, -30, Math.toRadians(-90));
 
     // Posição final de estacionamento
-    private final Pose Parking = new Pose(120, -20, Math.toRadians(90));
+    private final Pose Parking = new Pose(100, -20, Math.toRadians(90));
 
     @Override
     public void runOpMode() throws InterruptedException {

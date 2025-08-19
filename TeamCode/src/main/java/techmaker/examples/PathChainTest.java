@@ -23,7 +23,7 @@ public class PathChainTest extends OpMode {
     // Posições de jogo para as rotinas de autônomo.
     private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
     private final Pose Coletacima = new Pose(95, -80, Math.toRadians(0));
-    private final Pose voltaEntrga = new Pose(40, -20, Math.toRadians(135));
+    private final Pose voltaEntrga = new Pose(40, -20, Math.toRadians(0));
     private final Pose ColetaMeio = new Pose(100, -30, Math.toRadians(-90));
     private final Pose entrega = new Pose(-20, -20, Math.toRadians(135));
 
