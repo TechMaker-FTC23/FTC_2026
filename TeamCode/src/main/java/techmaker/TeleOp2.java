@@ -5,12 +5,15 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
 import com.pedropathing.util.Drawing;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
@@ -25,10 +28,10 @@ public class TeleOp2 extends OpMode {
     private ElevatorSubsystem elevator;
     private IntakeSubsystem intake;
     private Follower follower;
-
+    private Limelight3A limelight;
     private StateMachine state = StateMachine.IDLE;
     private StateMachine stateClawSample = StateMachine.CLAW_SPECIMENT;
-    private final Pose startPose = new Pose(0,0,0);
+    private final Pose startPose = new Pose(0,0,180);
 
     private final ElapsedTime timer = new ElapsedTime();
     private long timeout = 0;
@@ -51,7 +54,9 @@ public class TeleOp2 extends OpMode {
 
         intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
         intake.sliderMin();
-
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(0);
+        limelight.start();
         telemetry.addData("Status", "TeleOp Principal Inicializado");
         telemetry.update();
     }
@@ -78,6 +83,10 @@ public class TeleOp2 extends OpMode {
         follower.setTeleOpMovementVectors(x,y,turn,false);
         follower.update();
 
+        Pose pose= getVisionPose();
+        if(pose!=null){
+            follower.setPose(pose);
+        }
         intake.maintainSliderPosition();
 
 
@@ -196,7 +205,7 @@ public class TeleOp2 extends OpMode {
             }
         }
 
-        Pose pose = follower.getPose();
+        pose = follower.getPose();
         //claw.update(telemetry);
         elevator.update(telemetry);
         intake.update(telemetry);
@@ -205,5 +214,24 @@ public class TeleOp2 extends OpMode {
         telemetry.addData("Pose",pose);
         telemetry.update();
     }
+    private Pose getVisionPose() {
+        limelight.updateRobotOrientation(follower.getPose().getHeading());
+        LLResult result = limelight.getLatestResult();
 
+        if (result == null || !result.isValid()
+
+                || result.getStaleness() > 200) {
+            return null;
+        }
+
+        Pose3D visionPose3D = result.getBotpose_MT2();
+        if (visionPose3D != null) {
+            return new Pose(
+                    visionPose3D.getPosition().x * 100.0, // Converte metros para CM
+                    visionPose3D.getPosition().y * 100.0,
+                    visionPose3D.getOrientation().getYaw(AngleUnit.RADIANS)
+            );
+        }
+        return null;
+    }
 }

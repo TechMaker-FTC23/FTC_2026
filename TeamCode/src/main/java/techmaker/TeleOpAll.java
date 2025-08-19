@@ -8,12 +8,16 @@ import com.pedropathing.pathgen.BezierCurve;
 import com.pedropathing.pathgen.BezierLine;
 import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
 import techmaker.subsystems.ClawSubsystem;
@@ -27,7 +31,7 @@ public class TeleOpAll extends OpMode {
     private IMU imu;
     private PathChain pathChain;
     private boolean wasFollowing = false;
-
+    private Limelight3A limelight;
     private ClawSubsystem claw;
     private IntakeSubsystem intake;
     private ElevatorSubsystem elevator;
@@ -57,7 +61,9 @@ public class TeleOpAll extends OpMode {
         elevator = new ElevatorSubsystem(hardwareMap);
 
         stateManager = new RobotStateManager(intake, claw);
-
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(0);
+        limelight.start();
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
     }
 
@@ -69,7 +75,10 @@ public class TeleOpAll extends OpMode {
     @Override
     public void loop() {
         follower.update();
-
+        Pose pose= getVisionPose();
+        if(pose!=null){
+            follower.setPose(pose);
+        }
         if (!follower.isBusy()) {
             if (wasFollowing) {
                 follower.startTeleopDrive();
@@ -103,6 +112,7 @@ public class TeleOpAll extends OpMode {
         stateManager.runAutoCycle(gamepad2);
 
         follower.telemetryDebug(telemetry);
+
     }
 
     private void moveTo(Pose destino) {
@@ -119,5 +129,25 @@ public class TeleOpAll extends OpMode {
                 .setConstantHeadingInterpolation(heading)
                 .build();
         follower.followPath(pathChain, true);
+    }
+    private Pose getVisionPose() {
+        limelight.updateRobotOrientation(follower.getPose().getHeading());
+        LLResult result = limelight.getLatestResult();
+
+        if (result == null ||!result.isValid()
+
+                || result.getStaleness() > 200) {
+            return null;
+        }
+
+        Pose3D visionPose3D = result.getBotpose_MT2();
+        if (visionPose3D!= null) {
+            return new Pose(
+                    visionPose3D.getPosition().x * 100.0, // Converte metros para CM
+                    visionPose3D.getPosition().y * 100.0,
+                    visionPose3D.getOrientation().getYaw(AngleUnit.RADIANS)
+            );
+        }
+        return null;
     }
 }
