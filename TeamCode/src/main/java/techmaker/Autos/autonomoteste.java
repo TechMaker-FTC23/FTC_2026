@@ -32,13 +32,13 @@ public class autonomoteste extends LinearOpMode {
     private Telemetry telemetryA;
     private Follower follower;
     private Limelight3A limelight3A;
-    private final Pose startPose = new Pose(9.821496197557826, 22.378273310623772, Math.toRadians(215.83296690440577));
+    private final Pose startPose = new Pose(6.150190698818898, 62.440310500738185, Math.toRadians(180));
     private final Pose BargeUp = new Pose(95/2.54, 80/2.54, Math.toRadians(0));
     private final Pose BargeMiddle = new Pose(100/2.54, 30/2.54, Math.toRadians(-90));
-    private final Pose SpikeMarkC = new Pose(51.67799581692913, 50.188276636318896, Math.toRadians(286.48007235794887));
-    private final Pose SpikeMarkD = new Pose(-7.473441296675074, -3.907268253837045, Math.toRadians(285.017482969839));
-    private final Pose SpikeMarkE = new Pose(-1.7804964320866143, -3.174639724371002, Math.toRadians(313.18674039010233));
-    private final Pose Basket = new Pose(52.094394954170774, 58.21346733513779, Math.toRadians(221.45235477987202));
+    private final Pose SpikeMarkC = new Pose(52.83622201033465, 54.25664946788878, Math.toRadians(268.48007235794887));
+    private final Pose SpikeMarkD = new Pose(44.25882174274115, 54.10334068959153, Math.toRadians(266.017482969839));
+    private final Pose SpikeMarkE = new Pose(50.39361908679872, 50.80521711214321, Math.toRadians(295.18674039010233));
+    private final Pose Basket = new Pose(51.65671040692668, 58.230110228531004, Math.toRadians(221.45235477987202));
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -52,13 +52,16 @@ public class autonomoteste extends LinearOpMode {
         telemetryA.addData("Status", "Autônomo Inicializado.");
         telemetryA.addData("Sequência", "START -> MEIO -> ENTREGA -> MEIO -> ENTREGA -> CIMA -> ENTREGA");
         telemetryA.update();
-
+        updatePoseLimelight();
         waitForStart();
 
         // --- EXECUÇÃO DO AUTÔNOMO ---
         if (opModeIsActive() && !isStopRequested()) {
             intake.sliderMin();
-
+            for (int i=0;i<100;i++){
+                updatePoseLimelight();
+                sleep(2);
+            }
 
             // AQUI: Preciso Adicionar o código para os mecanismos COLETAREM
 
@@ -153,40 +156,49 @@ public class autonomoteste extends LinearOpMode {
         }
 
         follower.followPath(path, true); // holdEnd = true é bom para manter a posição
-        waitForPathToFinish(); // Chama o nosso segundo método auxiliar para esperar
+        waitForPathToFinish(targetPose, startOfPathPose); // Chama o nosso segundo método auxiliar para esperar
     }
 
-    private void waitForPathToFinish() {
+    private void waitForPathToFinish(Pose pose, Pose start) {
         while (opModeIsActive() && !isStopRequested() && follower.isBusy()) {
             follower.update(); // ESSENCIAL: Atualiza a lógica do seguidor de caminho
-            follower.telemetryDebug(telemetryA); // Envia telemetria para o Dashboard
+            telemetryA.addData("Pose",follower.getPose());
+            telemetryA.addData("Target",pose);
+            telemetryA.addData("Start",start);
             telemetryA.update(); // Atualiza a telemetria na Driver Station
-            idle(); // Cede tempo de CPU para outros processos do robô
+            //idle(); // Cede tempo de CPU para outros processos do robô
+            updatePoseLimelight();
+        }
 
-            LLResult result = limelight3A.getLatestResult();
+    }
+    void updatePoseLimelight(){
+        double currentYawDegrees = Math.toDegrees(follower.getPose().getHeading());
 
-            Pose3D botpose = null;
-            if (result != null && result.isValid()) {
-                botpose = result.getBotpose_MT2();
-            }
-            if (botpose != null) {
-                // O botpose retorna as coordenadas em metros.
-                telemetryA.addData("Botpose X (metros)", "%.2f", botpose.getPosition().x);
-                telemetryA.addData("Botpose Y (metros)", "%.2f", botpose.getPosition().y);
-                telemetryA.addData("Botpose Z (metros)", "%.2f", botpose.getPosition().z);
+        limelight3A.updateRobotOrientation(currentYawDegrees);
 
-                telemetryA.addData("Botpose Yaw (graus)", "%.2f", botpose.getOrientation().getYaw(AngleUnit.RADIANS));
+        LLResult result = limelight3A.getLatestResult();
 
-                // Converte a Pose3D da Limelight (metros) para a Pose 2D do Pedro Pathing (CM)
-                Pose visionPose = new Pose(
-                        botpose.getPosition().x /0.0254,
-                        botpose.getPosition().y /0.0254,
-                        botpose.getOrientation().getYaw(AngleUnit.RADIANS)
+        Pose3D botpose = null;
+        if (result != null && result.isValid()) {
+            botpose = result.getBotpose_MT2();
+        }
+        if (botpose != null) {
+            // O botpose retorna as coordenadas em metros.
+            telemetryA.addData("Botpose X (metros)", "%.2f", botpose.getPosition().x);
+            telemetryA.addData("Botpose Y (metros)", "%.2f", botpose.getPosition().y);
+            telemetryA.addData("Botpose Z (metros)", "%.2f", botpose.getPosition().z);
 
-                );
+            telemetryA.addData("Botpose Yaw (graus)", "%.2f", botpose.getOrientation().getYaw(AngleUnit.RADIANS));
 
-                follower.setPose(visionPose);
-            }
+            // Converte a Pose3D da Limelight (metros) para a Pose 2D do Pedro Pathing (CM)
+            Pose visionPose = new Pose(
+                    botpose.getPosition().x /0.0254,
+                    botpose.getPosition().y /0.0254,
+                    Math.toRadians(currentYawDegrees)
+
+            );
+            follower.setPose(visionPose);
+            follower.update();
         }
     }
 }
