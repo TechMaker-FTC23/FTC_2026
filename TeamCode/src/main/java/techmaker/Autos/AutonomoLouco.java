@@ -1,314 +1,216 @@
 package techmaker.Autos;
 
 import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
+import com.pedropathing.pathgen.BezierCurve;
 import com.pedropathing.pathgen.BezierLine;
 import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes.FiducialResult; // Import necessário
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import java.util.Arrays;
-import java.util.List;
+
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
-@Disabled
+import techmaker.subsystems.ClawSubsystem;
+import techmaker.subsystems.ElevatorSubsystem;
+import techmaker.subsystems.IntakeSubsystem;
 
-//@Config
-@Autonomous
+@Autonomous(name = "Autônomo de Campeonato (Coleta Inteligente)")
 public class AutonomoLouco extends LinearOpMode {
 
-    private Follower follower;
-    private Limelight3A limelight;
-    private IMU imu;
-    private DcMotor leftFront, leftBack, rightFront, rightBack;
-    public static List<Integer> TARGET_APRILTAG_IDS = Arrays.asList(11, 12, 13, 14, 15, 16);
-    public static double TARGET_DISTANCE_CM = 30.0;
-    public static double ALIGNMENT_TOLERANCE_DEGREES = 1.0;
-    public static double DISTANCE_TOLERANCE_CM = 2.0;
-    public static double SPIN_TOLERANCE_DEGREES = 2.0;
-
-    public static double ALIGNMENT_KP = 0.03;
-    public static double APPROACH_KP = 0.02;
-    public static double SPIN_KP = 0.4;
-
-    // --- Poses para o Pedro Pathing (em CM) ---
-    private final Pose START_POSE = new Pose(0, 0, Math.toRadians(0));
-    private final Pose FORWARD_PATH_END_POSE = new Pose(200, 0, Math.toRadians(0)); // Move 2 metros para frente
-
-    private PathChain pathToDriveForward;
     private Telemetry telemetryA;
+    private Follower follower;
+    private ClawSubsystem claw;
+    private ElevatorSubsystem elevator;
+    private IntakeSubsystem intake;
+
+    // --- Poses de Jogo Otimizadas (Ajustar com precisão no campo!) ---
+    private final double INTAKE_EXTENSION_DISTANCE = 20.0; // Distância que o slider estende (em cm)
+    private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
+
+    // Poses dos Drones nos Spike Marks (baseado no manual: 3.5" da parede, 10" entre eles)
+    private final Pose spikeMarkCenter = new Pose(88.9, 0, Math.toRadians(0));
+    private final Pose spikeMarkLeft = new Pose(88.9, 25.4, Math.toRadians(0));
+    private final Pose spikeMarkRight = new Pose(88.9, -25.4, Math.toRadians(0));
+
+    // Poses de APROXIMAÇÃO para cada Spike Mark (recuadas pela distância do intake)
+    private final Pose spikeMarkCenterApproach = new Pose(spikeMarkCenter.getX() - INTAKE_EXTENSION_DISTANCE, spikeMarkCenter.getY(), spikeMarkCenter.getHeading());
+    private final Pose spikeMarkLeftApproach = new Pose(spikeMarkLeft.getX() - INTAKE_EXTENSION_DISTANCE, spikeMarkLeft.getY(), spikeMarkLeft.getHeading());
+    private final Pose spikeMarkRightApproach = new Pose(spikeMarkRight.getX() - INTAKE_EXTENSION_DISTANCE, spikeMarkRight.getY(), spikeMarkRight.getHeading());
+
+    // Posição de lançamento nos Baskets
+    private final Pose basketLaunchPose = new Pose(90, -85, Math.toRadians(90));
+    // Ponto de controlo para o arco largo
+    private final Pose viaPointEntrega = new Pose(40, 20, Math.toRadians(90));
 
     @Override
     public void runOpMode() throws InterruptedException {
-        initializeHardware();
-        buildPaths();
-
-        telemetryA.addData("Status", "Inicialização Completa. Pronto para iniciar!");
-        telemetryA.update();
+        initialize();
 
         waitForStart();
 
-        if (opModeIsActive() &&!isStopRequested()) {
+        if (opModeIsActive() && !isStopRequested()) {
+            // --- ROTINA PRINCIPAL ---
 
-            // --- PASSO 1: NAVEGAR PARA FRENTE ATÉ VER UM ALVO ---
-            telemetryA.addData("Passo", "1: Navegando para frente, procurando por alvos...");
+            scorePreload();
+            runSpikeMarkCycle(spikeMarkCenterApproach, spikeMarkCenter);
+            runSpikeMarkCycle(spikeMarkLeftApproach, spikeMarkLeft);
+            runSpikeMarkCycle(spikeMarkRightApproach, spikeMarkRight);
+
+            telemetryA.addLine("Rotina de 4 Drones concluída!");
             telemetryA.update();
-            follower.followPath(pathToDriveForward, true);
-            waitForPathToFinishOrTargetVisible();
-
-            // Se o loop terminou porque um alvo foi visto, o follower foi interrompido.
-            // Se terminou porque o caminho acabou, o robô para.
-
-            // --- PASSO 2: ALINHAR COM O ALVO ENCONTRADO ---
-            telemetryA.addData("Passo", "2: Alvo encontrado! Alinhando...");
-            telemetryA.update();
-            alignWithTarget();
-
-            // --- PASSO 3: APROXIMAR DO ALVO ---
-            telemetryA.addData("Passo", "3: Alinhado! Aproximando do Alvo (Alvo: " + TARGET_DISTANCE_CM + " cm)");
-            telemetryA.update();
-            approachTarget();
-
-            // --- PASSO 4: EXECUTAR O GIRO ---
-            telemetryA.addData("Passo", "4: Na distância correta! Executando Giro de 90 Graus");
-            telemetryA.update();
-            performSpin(90);
-
-            // --- FIM (ou continue para o próximo passo) ---
-            telemetryA.addData("Estado", "Primeiro ciclo concluído!");
-            telemetryA.update();
-            setDrivetrainPower(0, 0); // Garante que o robô pare
-            sleep(2000); // Pausa para observação
         }
     }
 
-    // --- MÉTODOS DE INICIALIZAÇÃO ---
-    private void initializeHardware() {
-        follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        imu = hardwareMap.get(IMU.class, "imu");
-
-        leftFront = hardwareMap.get(DcMotor.class, "leftFront");
-        leftBack = hardwareMap.get(DcMotor.class, "leftBack");
-        rightFront = hardwareMap.get(DcMotor.class, "rightFront");
-        rightBack = hardwareMap.get(DcMotor.class, "rightBack");
-
-        // IMPORTANTE: Configure as direções dos motores para seu drivetrain
-        // Ex: rightFront.setDirection(DcMotor.Direction.REVERSE);
-        //     rightBack.setDirection(DcMotor.Direction.REVERSE);
-
-        RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.UP;
-        RevHubOrientationOnRobot.UsbFacingDirection usbDirection = RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
-        imu.initialize(new IMU.Parameters(new RevHubOrientationOnRobot(logoDirection, usbDirection)));
-        imu.resetYaw();
-
-        limelight.pipelineSwitch(0);
-        limelight.start();
-
-        follower.setStartingPose(START_POSE);
+    private void initialize() {
         telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
+
+        follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
+        claw = new ClawSubsystem(hardwareMap);
+        elevator = new ElevatorSubsystem(hardwareMap);
+        intake = new IntakeSubsystem(hardwareMap, false);
+
+        follower.setStartingPose(startPose);
+        claw.setState(ClawSubsystem.ClawState.TRAVEL);
+        claw.setClawOpen(false);
+        elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
+        intake.sliderMin();
+
+        telemetryA.addLine("Autônomo de Precisão Pronto.");
+        telemetryA.update();
     }
 
-    private void buildPaths() {
-        pathToDriveForward = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(START_POSE), new Point(FORWARD_PATH_END_POSE)))
-                .setLinearHeadingInterpolation(START_POSE.getHeading(), FORWARD_PATH_END_POSE.getHeading())
+    private void scorePreload() {
+        telemetryA.addLine("Passo 1: A pontuar o pré-carregado...");
+        telemetryA.update();
+
+        elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+        claw.setState(ClawSubsystem.ClawState.SCORE);
+
+        PathChain pathToLaunch = follower.pathBuilder()
+                .addPath(new BezierCurve(new Point(follower.getPose()), new Point(viaPointEntrega), new Point(basketLaunchPose)))
                 .build();
+        follower.followPath(pathToLaunch, true);
+
+        waitForPathToFinish();
+        waitForElevator(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+
+        claw.setClawOpen(true);
+        sleep(200); // Sleep reduzido
     }
 
-    // --- MÉTODOS DE CONTROLE E LÓGICA ---
+    private void runSpikeMarkCycle(Pose approachPose, Pose collectionPose) {
+        telemetryA.addLine("Ciclo: A ir para a aproximação em " + approachPose);
+        telemetryA.update();
 
-    private void correctPoseWithVision() {
-        limelight.updateRobotOrientation(imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
-        LLResult result = limelight.getLatestResult();
-        if (result == null ||!result.isValid()
-                | result.getStaleness() > 200) return;
+        claw.setState(ClawSubsystem.ClawState.TRAVEL);
+        elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
 
-        Pose3D visionPose3D = result.getBotpose_MT2();
-        if (visionPose3D!= null) {
-            Pose visionPose = new Pose(
-                    visionPose3D.getPosition().x * 100.0,
-                    visionPose3D.getPosition().y * 100.0,
-                    visionPose3D.getOrientation().getYaw(AngleUnit.RADIANS)
-            );
-            follower.setPose(visionPose);
+        PathChain pathToApproach = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(follower.getPose()), new Point(approachPose)))
+                .build();
+        follower.followPath(pathToApproach, true);
+        waitForPathToFinish();
+        waitForElevator(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
+
+        // Executa a manobra de coleta inteligente e verifica se foi bem-sucedida
+        boolean collectionSuccess = collectFromSpike(collectionPose);
+
+        if (collectionSuccess) {
+            scoreCollectedDrone();
+        } else {
+            telemetryA.addLine("COLETA FALHOU! A abortar este ciclo.");
+            telemetryA.update();
+            // Retrai o intake para segurança antes de continuar
+            intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
+            intake.sliderMin();
+            sleep(250);
         }
     }
 
-    private boolean isTargetVisible() {
-        LLResult result = limelight.getLatestResult();
-        if (result == null ||!result.isValid()) return false;
+    private boolean collectFromSpike(Pose targetSpikePose) {
+        telemetryA.addLine("A executar manobra de coleta inteligente...");
+        telemetryA.update();
 
-        if (result.getFiducialResults()!= null &&!result.getFiducialResults().isEmpty()) {
-            for (FiducialResult fiducial : result.getFiducialResults()) {
-                if (TARGET_APRILTAG_IDS.contains(fiducial.getFiducialId())) {
-                    return true; // Encontrou uma das tags da nossa lista!
-                }
-            }
+        intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
+        intake.sliderMax();
+        sleep(250); // Sleep reduzido para a extensão do slider
+
+        intake.resetCaptureState();
+        intake.startAutomaticCapture();
+
+        // Inicia um movimento lento para a frente para "procurar" o Drone
+        PathChain searchPath = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(follower.getPose()), new Point(targetSpikePose)))
+                .build();
+        follower.followPath(searchPath, true);
+
+        // Loop de espera ativa: espera que a captura aconteça OU que o movimento termine
+        while(opModeIsActive() && !isStopRequested() && follower.isBusy() && !intake.isCaptureComplete()) {
+            follower.update();
+            intake.updateAutomaticCapture();
         }
-        return false;
+
+        // Verifica o resultado
+        if (intake.isCaptureComplete()) {
+            // CORREÇÃO: Para o movimento do robô imediatamente enviando vetores de movimento nulos.
+            follower.setTeleOpMovementVectors(0, 0, 0, false);
+            telemetryA.addLine("Drone DETETADO! A segurar...");
+            telemetryA.update();
+
+            claw.setClawOpen(false);
+            sleep(250);
+            intake.sliderMin();
+            sleep(250);
+            intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
+            return true; // Sucesso!
+        } else {
+            // Se chegou aqui, o caminho terminou mas o Drone não foi detetado
+            telemetryA.addLine("Busca concluída, Drone não encontrado.");
+            telemetryA.update();
+            intake.sliderMin(); // Retrai por segurança
+            return false; // Falha!
+        }
     }
 
-    private void alignWithTarget() {
-        ElapsedTime timeout = new ElapsedTime();
-        while(opModeIsActive() && timeout.seconds() < 3.0) {
-            LLResult result = limelight.getLatestResult();
-            if (!isTargetVisible()) {
-                setDrivetrainPower(0, 0);
-                continue;
-            }
+    private void scoreCollectedDrone() {
+        telemetryA.addLine("Ciclo: A retornar para pontuar...");
+        telemetryA.update();
 
-            double tx = result.getTx();
-            if (Math.abs(tx) < ALIGNMENT_TOLERANCE_DEGREES) {
-                setDrivetrainPower(0, 0);
-                return; // Alinhado!
-            }
+        elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_MEDIUM);
+        claw.setState(ClawSubsystem.ClawState.SCORE);
 
-            double turnPower = -tx * ALIGNMENT_KP;
-            setDrivetrainPower(0, turnPower);
-            updateTelemetry();
-        }
-        setDrivetrainPower(0, 0);
-    }
+        PathChain pathToLaunch = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(follower.getPose()), new Point(basketLaunchPose)))
+                .build();
+        follower.followPath(pathToLaunch, true);
+        waitForPathToFinish();
+        waitForElevator(ElevatorSubsystem.ELEVATOR_PRESET_MEDIUM);
 
-    private void approachTarget() {
-        ElapsedTime timeout = new ElapsedTime();
-        while(opModeIsActive() && timeout.seconds() < 4.0) {
-            LLResult result = limelight.getLatestResult();
-            if (!isTargetVisible()) {
-                setDrivetrainPower(0, 0);
-                continue;
-            }
-
-            double currentDistance = calculateDistanceToTarget(result.getTy());
-            if (currentDistance < 0) {
-                setDrivetrainPower(0, 0);
-                continue;
-            }
-
-            double error = currentDistance - TARGET_DISTANCE_CM;
-            if (Math.abs(error) < DISTANCE_TOLERANCE_CM) {
-                setDrivetrainPower(0, 0);
-                return; // Na distância correta!
-            }
-
-            double forwardPower = error * APPROACH_KP;
-            setDrivetrainPower(forwardPower, 0);
-            updateTelemetry();
-        }
-        setDrivetrainPower(0, 0);
-    }
-
-    private void performSpin(double degrees) {
-        double startAngleRad = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-        double targetAngleRad = AngleUnit.normalizeRadians(startAngleRad + Math.toRadians(degrees));
-        ElapsedTime spinTimer = new ElapsedTime();
-
-        while (opModeIsActive() && spinTimer.seconds() < 4.0) {
-            double currentAngleRad = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-            double errorRad = AngleUnit.normalizeRadians(targetAngleRad - currentAngleRad);
-
-            if (Math.abs(errorRad) < Math.toRadians(SPIN_TOLERANCE_DEGREES)) {
-                break;
-            }
-
-            double turnPower = errorRad * SPIN_KP;
-            setDrivetrainPower(0, turnPower);
-            updateTelemetry();
-        }
-        setDrivetrainPower(0, 0);
-    }
-
-    // --- MÉTODOS UTILITÁRIOS ---
-
-    private double calculateDistanceToTarget(double ty) {
-        // Valores que você forneceu e ajustou
-        double cameraHeightCM = 14.0;
-        double targetHeightCM = 10.16; // 101.6mm
-        double cameraPitchRadians = Math.toRadians(0.0); // Câmera paralela ao chão
-
-        double angleToTargetRadians = Math.toRadians(ty) + cameraPitchRadians;
-
-        // Se o alvo está abaixo da horizontal da câmera, ty é negativo, e o ângulo total também.
-        // tan(ângulo negativo) é negativo. A diferença de altura (10.16 - 14.0) também é negativa.
-        // Negativo / Negativo = Positivo, então a distância é correta.
-        if (angleToTargetRadians < 0) {
-            return (targetHeightCM - cameraHeightCM) / Math.tan(angleToTargetRadians);
-        }
-        return -1; // Retorna distância inválida se o alvo estiver acima da horizontal da câmera
-    }
-
-    // Método para controlar um drivetrain mecanum
-    private void setDrivetrainPower(double forward, double turn) {
-        double leftFrontPower  = forward - turn;
-        double leftBackPower   = forward - turn;
-        double rightFrontPower = forward + turn;
-        double rightBackPower  = forward + turn;
-
-        double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
-        max = Math.max(max, Math.abs(leftBackPower));
-        max = Math.max(max, Math.abs(rightBackPower));
-        if (max > 1.0) {
-            leftFrontPower  /= max;
-            leftBackPower   /= max;
-            rightFrontPower /= max;
-            rightBackPower  /= max;
-        }
-
-        leftFront.setPower(leftFrontPower);
-        leftBack.setPower(leftBackPower);
-        rightFront.setPower(rightFrontPower);
-        rightBack.setPower(rightBackPower);
+        claw.setClawOpen(true);
+        // Otimização: Iniciar a próxima ação imediatamente após abrir a garra
+        // sleep(200); // Sleep removido ou muito reduzido
     }
 
     private void waitForPathToFinish() {
-        while (opModeIsActive() &&!isStopRequested() && follower.isBusy()) {
-            correctPoseWithVision();
+        while (opModeIsActive() && !isStopRequested() && follower.isBusy()) {
             follower.update();
-            updateTelemetry();
-            idle();
+            elevator.update(telemetryA);
+            intake.updateAutomaticCapture();
+            follower.telemetryDebug(telemetryA);
+            telemetryA.update();
         }
     }
 
-    private void waitForPathToFinishOrTargetVisible() {
-        ElapsedTime timeout = new ElapsedTime();
-        while (opModeIsActive() &&!isStopRequested() && follower.isBusy() && timeout.seconds() < 7.0) {
-            correctPoseWithVision();
-            follower.update();
-            if (isTargetVisible()) {
-                follower.breakFollowing();
-                break;
-            }
-            updateTelemetry();
-            idle();
+    private void waitForElevator(int targetPosition) {
+        ElapsedTime timer = new ElapsedTime();
+        while (opModeIsActive() && !isStopRequested() && Math.abs(elevator.getCurrentPosition() - targetPosition) > 20 && timer.seconds() < 2.5) {
+            elevator.update(telemetryA);
         }
-    }
-
-    private void updateTelemetry() {
-        telemetryA.addData("Pose do Robô (cm)", follower.getPose().toString());
-
-        LLResult result = limelight.getLatestResult();
-        if (result!= null && result.isValid()) {
-            telemetryA.addData("Limelight Alvo Visível", isTargetVisible()? "Sim (ID Correto)" : "Sim (Outro ID)");
-            telemetryA.addData("Limelight tx", "%.2f", result.getTx());
-            telemetryA.addData("Distância Calculada (cm)", "%.2f", calculateDistanceToTarget(result.getTy()));
-        } else {
-            telemetryA.addData("Limelight Alvo Visível", "Não");
-        }
-        telemetryA.update();
     }
 }
