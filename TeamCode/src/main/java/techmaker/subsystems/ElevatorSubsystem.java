@@ -2,7 +2,6 @@ package techmaker.subsystems;
 
 import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -16,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 import techmaker.constants.Constants;
 
 @Config
-public class ElevatorSubsystem extends SubsystemBase {
+public class ElevatorSubsystem {
 
     // --- Motores ---
     private final DcMotorEx LeftElevator;
