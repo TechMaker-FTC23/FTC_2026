@@ -1,4 +1,4 @@
-package techmaker.examples;
+package techmaker;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -7,16 +7,22 @@ import com.pedropathing.localization.Pose;
 import com.pedropathing.pathgen.BezierLine;
 import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
 
 @TeleOp(name = "PathChainTest (Com Rotinas)")
 public class PathChainTest extends OpMode {
+    private Limelight3A limelight;
+
     private Telemetry telemetryA;
     private Follower follower;
 
@@ -42,6 +48,10 @@ public class PathChainTest extends OpMode {
 
         telemetryA.addLine("Robô inicializado. Pressione D-Pad para testar as rotinas.");
         telemetryA.update();
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.pipelineSwitch(0);
+        limelight.start();
+
     }
 
     @Override
@@ -52,7 +62,10 @@ public class PathChainTest extends OpMode {
     @Override
     public void loop() {
         follower.update();
-
+        Pose pose= getVisionPose();
+        if(pose!=null){
+            follower.setPose(pose);
+        }
         // Só permite iniciar uma nova rotina se o robô não estiver ocupado.
         if (!follower.isBusy()) {
 
@@ -107,5 +120,25 @@ public class PathChainTest extends OpMode {
         follower.telemetryDebug(telemetryA);
         telemetryA.addData("Está Ocupado?", follower.isBusy());
         telemetryA.update();
+    }
+    private Pose getVisionPose() {
+        limelight.updateRobotOrientation(follower.getPose().getHeading());
+        LLResult result = limelight.getLatestResult();
+
+        if (result == null ||!result.isValid()
+
+                || result.getStaleness() > 200) {
+            return null;
+        }
+
+        Pose3D visionPose3D = result.getBotpose_MT2();
+        if (visionPose3D!= null) {
+            return new Pose(
+                    visionPose3D.getPosition().x * 100.0, // Converte metros para CM
+                    visionPose3D.getPosition().y * 100.0,
+                    visionPose3D.getOrientation().getYaw(AngleUnit.RADIANS)
+            );
+        }
+        return null;
     }
 }
