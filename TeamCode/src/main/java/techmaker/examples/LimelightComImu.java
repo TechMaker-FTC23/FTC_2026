@@ -20,18 +20,17 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
-@Disabled
+
 
 @TeleOp
 public class LimelightComImu extends LinearOpMode {
     private Telemetry telemetryA;
 
     private Limelight3A limelight;
-    private IMU imu;
     private Pose3D botPoseCam;
     private Follower follower;
     private FtcDashboard dashboard;
-    private final Pose startPose = new Pose(0,0,0);
+    private final Pose startPose = new Pose(72,-72,Math.PI);
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -39,14 +38,11 @@ public class LimelightComImu extends LinearOpMode {
         telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetryA.update();
         dashboard = FtcDashboard.getInstance();
-        imu = hardwareMap.get(IMU.class, "imu");
-        follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
 
-        RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
-        RevHubOrientationOnRobot.UsbFacingDirection usbDirection = RevHubOrientationOnRobot.UsbFacingDirection.UP;
-        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
-        imu.initialize(new IMU.Parameters(orientationOnRobot));
-        imu.resetYaw();
+        follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
+        follower.setStartingPose(startPose);
+
+
 
         // 2. Inicializar a Limelight
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -63,9 +59,9 @@ public class LimelightComImu extends LinearOpMode {
         while (opModeIsActive()) {
             TelemetryPacket packet = new TelemetryPacket();
             Canvas fieldOverlay = packet.fieldOverlay();
-            YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
-            double currentYawDegrees = orientation.getYaw(AngleUnit.DEGREES);
-            follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
+            follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, false);
+            follower.update();
+            double currentYawDegrees = Math.toDegrees(follower.getPose().getHeading());
 
             limelight.updateRobotOrientation(currentYawDegrees);
 
@@ -90,28 +86,43 @@ public class LimelightComImu extends LinearOpMode {
 
                 telemetryA.addData("Botpose Yaw (graus)", "%.2f", botpose.getOrientation().getYaw(AngleUnit.DEGREES));
 
-                // Converte a Pose3D da Limelight (metros) para a Pose 2D do Pedro Pathing (CM)
+                // Converte a Pose3D da Limelight (metros) para a Pose 2D do Pedro Pathing (pol)
                 Pose visionPose = new Pose(
-                        botpose.getPosition().x * 100.0,
-                        botpose.getPosition().y * 100.0,
-                        botpose.getOrientation().getYaw(AngleUnit.DEGREES)
+                        botpose.getPosition().x /0.0254,
+                        botpose.getPosition().y /0.0254,
+                        botpose.getOrientation().getYaw(AngleUnit.RADIANS)
 
                 );
 
                 follower.setPose(visionPose);
+                // Heading (yaw) em graus → radianos
+                double headingRad = follower.getPose().getHeading();
 
+                // Desenhar o robô
+                fieldOverlay.setFill("blue");
+
+                double xCm1 = visionPose.getX() * 2.54;
+                double yCm1 = visionPose.getY() * 2.54;
+
+                // Heading (yaw) em graus → radianos
+                double headingRad1 = visionPose.getHeading();
+                fieldOverlay.fillCircle(xCm1, yCm1, 10);
+
+                // Desenhar seta indicando direção
+                double lineLength = 20;
+                double x = xCm1 + Math.cos(headingRad1) * lineLength;
+                double y = yCm1 + Math.sin(headingRad1) * lineLength;
+                fieldOverlay.setStroke("black");
+                fieldOverlay.strokeLine(xCm1, yCm1, x, y);
                 Pose pedroPose = follower.getPose();
-                telemetryA.addData("Pedro pose X (metros)", "%.2f", pedroPose.getX());
-                telemetryA.addData("Pedro pose Y (metros)", "%.2f", pedroPose.getY());
+                telemetryA.addData("Pedro pose X ", "%.2f", pedroPose.getX());
+                telemetryA.addData("Pedro pose Y ", "%.2f", pedroPose.getY());
                 botPoseCam = botpose;
-            } else {
-                telemetryA.addData("Botpose", "Nenhuma pose válida detectada");
-                botPoseCam = new Pose3D(new Position(), new YawPitchRollAngles(AngleUnit.DEGREES, 0, 0, 0, 0));
             }
 
             // Converter de metros para centímetros
-            double xCm = follower.getPose().getX() / 2.54;
-            double yCm = follower.getPose().getY() / 2.54;
+            double xCm = follower.getPose().getX() * 2.54;
+            double yCm = follower.getPose().getY() * 2.54;
 
             // Heading (yaw) em graus → radianos
             double headingRad = follower.getPose().getHeading();
@@ -135,8 +146,5 @@ public class LimelightComImu extends LinearOpMode {
             telemetryA.update();
         }
         limelight.stop();
-    }
-    public Pose3D getBotPoseCam() {
-        return botPoseCam;
     }
 }

@@ -46,6 +46,7 @@ public class PathChainTest extends OpMode {
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setStartingPose(startPose);
 
+
         telemetryA.addLine("Robô inicializado. Pressione D-Pad para testar as rotinas.");
         telemetryA.update();
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -117,7 +118,8 @@ public class PathChainTest extends OpMode {
         dpadDownPressed = gamepad1.dpad_down;
 
         // Envia a telemetria para o Dashboard.
-        follower.telemetryDebug(telemetryA);
+        //follower.telemetryDebug(telemetryA);
+        telemetryA.addData("Pose",follower.getPose());
         telemetryA.addData("Está Ocupado?", follower.isBusy());
         telemetryA.update();
     }
