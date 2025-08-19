@@ -43,16 +43,21 @@ public class autonomoteste extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap,false);
+        
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
-        follower.setStartingPose(startPose);
+        follower.setPose(startPose);
+        follower.update();
+
         limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
         limelight3A.pipelineSwitch(0);
         limelight3A.start();
         telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
+        updatePoseLimelight();
         telemetryA.addData("Status", "Autônomo Inicializado.");
         telemetryA.addData("Sequência", "START -> MEIO -> ENTREGA -> MEIO -> ENTREGA -> CIMA -> ENTREGA");
+        telemetryA.addData("Start",follower.getPose());
         telemetryA.update();
-        updatePoseLimelight();
+
         waitForStart();
 
         // --- EXECUÇÃO DO AUTÔNOMO ---
