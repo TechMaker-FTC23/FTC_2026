@@ -89,7 +89,7 @@ public class AutonomoLouco extends LinearOpMode {
         telemetryA.addLine("Passo 1: A pontuar o pré-carregado...");
         telemetryA.update();
 
-        elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+        elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
         claw.setState(ClawSubsystem.ClawState.SCORE);
 
         PathChain pathToLaunch = follower.pathBuilder()
@@ -109,7 +109,7 @@ public class AutonomoLouco extends LinearOpMode {
         telemetryA.update();
 
         claw.setState(ClawSubsystem.ClawState.TRAVEL);
-        elevator.goToPosition(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
+        elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
 
         PathChain pathToApproach = follower.pathBuilder()
                 .addPath(new BezierLine(new Point(follower.getPose()), new Point(approachPose)))
