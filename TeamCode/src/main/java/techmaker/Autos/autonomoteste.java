@@ -18,6 +18,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
+import techmaker.constants.Constants;
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
 import techmaker.subsystems.ClawSubsystem;
@@ -31,17 +32,17 @@ public class autonomoteste extends LinearOpMode {
     private Telemetry telemetryA;
     private Follower follower;
     private Limelight3A limelight3A;
-    private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
+    private final Pose startPose = new Pose(9.821496197557826, 22.378273310623772, Math.toRadians(215.83296690440577));
     private final Pose BargeUp = new Pose(95/2.54, 80/2.54, Math.toRadians(0));
     private final Pose BargeMiddle = new Pose(100/2.54, 30/2.54, Math.toRadians(-90));
-    private final Pose SpikeMarkC = new Pose(-48.4/2.54,63/2.54, Math.toRadians(0));
-    private final Pose SpikeMarkD = new Pose(-23/2.54,63/2.54, Math.toRadians(0));
-    private final Pose SpikeMarkE = new Pose(-48.4/2.54,63/2.54, Math.toRadians(30));
-    private final Pose MidBasket = new Pose(-10/2.54,20/2.54, Math.toRadians(135));
-    private final Pose Basket = new Pose(-20/2.54, 5/2.54, Math.toRadians(135));
+    private final Pose SpikeMarkC = new Pose(51.67799581692913, 50.188276636318896, Math.toRadians(286.48007235794887));
+    private final Pose SpikeMarkD = new Pose(-7.473441296675074, -3.907268253837045, Math.toRadians(285.017482969839));
+    private final Pose SpikeMarkE = new Pose(-1.7804964320866143, -3.174639724371002, Math.toRadians(313.18674039010233));
+    private final Pose Basket = new Pose(52.094394954170774, 58.21346733513779, Math.toRadians(221.45235477987202));
 
     @Override
     public void runOpMode() throws InterruptedException {
+        IntakeSubsystem intake = new IntakeSubsystem(hardwareMap,false);
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setStartingPose(startPose);
         limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
@@ -56,12 +57,8 @@ public class autonomoteste extends LinearOpMode {
 
         // --- EXECUÇÃO DO AUTÔNOMO ---
         if (opModeIsActive() && !isStopRequested()) {
+            intake.sliderMin();
 
-
-            // --- CICLO 1: START -> MID POINT -> ENTREGA ---
-            telemetryA.addData("CICLO 1", "Entregando o pre colocado");
-            telemetryA.update();
-            executePathToPose(MidBasket, true, null); // Caminho reto
 
             // AQUI: Preciso Adicionar o código para os mecanismos COLETAREM
 

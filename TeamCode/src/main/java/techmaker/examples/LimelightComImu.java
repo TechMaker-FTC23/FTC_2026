@@ -90,7 +90,7 @@ public class LimelightComImu extends LinearOpMode {
                 Pose visionPose = new Pose(
                         botpose.getPosition().x /0.0254,
                         botpose.getPosition().y /0.0254,
-                        botpose.getOrientation().getYaw(AngleUnit.RADIANS)
+                        Math.toRadians(currentYawDegrees)
 
                 );
 
@@ -143,6 +143,7 @@ public class LimelightComImu extends LinearOpMode {
             packet.put("y", yCm);
             packet.put("heading°", follower.getPose().getHeading());
             dashboard.sendTelemetryPacket(packet);
+            telemetryA.addData("Pose RAW",follower.getPose());
             telemetryA.update();
         }
         limelight.stop();
