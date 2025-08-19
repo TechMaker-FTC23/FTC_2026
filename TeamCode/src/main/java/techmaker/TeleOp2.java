@@ -75,10 +75,11 @@ public class TeleOp2 extends OpMode {
         double x = -gamepad1.left_stick_x;
         double turn = -gamepad1.right_stick_x;
 
-        double rotatedX = x * Math.cos(-heading) - y * Math.sin(-heading);
-        double rotatedY = x * Math.sin(-heading) + y * Math.cos(-heading);
+        //double rotatedX = x * Math.cos(-heading) - y * Math.sin(-heading);
+        //double rotatedY = x * Math.sin(-heading) + y * Math.cos(-heading);
 
-        follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn, true);
+        //follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn, true);
+        follower.setTeleOpMovementVectors(x,y,turn,false);
         follower.update();
 
         intake.maintainSliderPosition();

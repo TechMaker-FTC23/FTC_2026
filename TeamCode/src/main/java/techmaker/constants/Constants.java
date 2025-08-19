@@ -2,10 +2,10 @@ package techmaker.constants;
 
 public class Constants {
     public static class Drivetrain {
-        public static String LeftFront = "leftFront";
-        public static String RightFront = "rightFront";
-        public static String LeftBack = "leftRear";
-        public static String RightBack = "rightRear";
+        public static String RightFront = "leftFront";
+        public static String LeftFront = "rightFront";
+        public static String RightBack = "leftRear";
+        public static String LeftBack = "rightRear";
     }
     public static class Intake {
         public static String Right = "rightintake";

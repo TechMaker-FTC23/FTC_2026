@@ -26,7 +26,7 @@ import java.util.List;
 
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
-@Disabled
+
 @TeleOp(name = "Motor Directions", group = "Teleop Test")
 public class MotorDirections extends OpMode {
     private Telemetry telemetryA;
