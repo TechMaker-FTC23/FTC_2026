@@ -28,7 +28,9 @@ import techmaker.util.StateMachine;
 
 @Autonomous
 public class autonomoteste extends LinearOpMode {
-
+    private ClawSubsystem claw;
+    private ElevatorSubsystem elevator;
+    private IntakeSubsystem intake;
     private Telemetry telemetryA;
     private Follower follower;
     private Limelight3A limelight3A;
@@ -42,12 +44,19 @@ public class autonomoteste extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        IntakeSubsystem intake = new IntakeSubsystem(hardwareMap,false);
-        
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
         follower.setPose(startPose);
         follower.update();
+        claw = new ClawSubsystem(hardwareMap);
+        elevator = new ElevatorSubsystem(hardwareMap);
+        intake = new IntakeSubsystem(hardwareMap, false);
 
+        claw.setState(ClawSubsystem.ClawState.TRAVEL);
+        claw.setClawOpen(false);
+        claw.setArmPosition(ClawSubsystem.ARM_LEFT_TRAVEL_CLAW, ClawSubsystem.ARM_RIGHT_TRAVEL_CLAW);
+
+        intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
+        intake.sliderMin();
         limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
         limelight3A.pipelineSwitch(0);
         limelight3A.start();
@@ -68,23 +77,30 @@ public class autonomoteste extends LinearOpMode {
                 sleep(2);
             }
 
-            // AQUI: Preciso Adicionar o código para os mecanismos COLETAREM
-
-
-            telemetryA.addData("CICLO 1", "Retornando para Entrega");
+            telemetryA.addData("CICLO 1", "Indo para a Basket com o pré-carregado");
             telemetryA.update();
-            executePathToPose(Basket, true, null); // Caminho reto
+            executePathToPose(Basket, true, null); // Caminho até a cesta
 
-            // AQUI: Preciso Adicionar o código para os mecanismos PONTUAREM
+            elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+            while (!elevator.atTargetPosition(20)) {
+                elevator.update(telemetry);
+            }
 
+            claw.setArmPosition(ClawSubsystem.ARM_LEFT_SCORE_CLAW, ClawSubsystem.ARM_RIGHT_SCORE_CLAW);
+            sleep(400);
+
+            claw.setClawOpen(true);
             sleep(500);
 
-            // --- CICLO 2: ENTREGA -> COLETA MEIO -> ENTREGA ---
+            claw.setArmPosition(ClawSubsystem.ARM_LEFT_TRAVEL_CLAW, ClawSubsystem.ARM_RIGHT_TRAVEL_CLAW);
+            elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
+            sleep(600);
+
+
             telemetryA.addData("CICLO 2", "Indo para o SpikeMark C");
             telemetryA.update();
             executePathToPose(SpikeMarkC, false, null);
 
-            // AQUI: Preciso Adicionar o código para os mecanismos COLETAREM
 
             sleep(500);
 
@@ -92,10 +108,8 @@ public class autonomoteste extends LinearOpMode {
             telemetryA.update();
             executePathToPose(Basket, false, null); // Caminho reto
 
-            // AQUI: Preciso Adicionar o código para os mecanismos PONTUAREM
             sleep(500);
 
-            // --- CICLO 3: ENTREGA -> COLETA CIMA -> ENTREGA ---
             telemetryA.addData("CICLO 3", "Indo para o SpikeMark D");
             telemetryA.update();
             executePathToPose(SpikeMarkD, false, null); // Caminho reto
