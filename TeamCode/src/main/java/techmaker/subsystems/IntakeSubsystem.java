@@ -29,8 +29,8 @@ public class IntakeSubsystem {
     public static double LEFT_INTAKE_WRIST_MIN = 0.32;
     public static double RIGHT_INTAKE_WRIST_MIN = 0.68;
 
-    public static double INTAKE_SLIDER_MAX = 0.35;
-    public static double INTAKE_SLIDER_MIN = 0.65;
+    public static double INTAKE_SLIDER_MAX = 0.25;
+    public static double INTAKE_SLIDER_MIN = 0.6;
 
 
     public enum CaptureState { IDLE, SEARCHING, CAPTURED }

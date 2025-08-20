@@ -72,9 +72,11 @@ public class autonomoteste extends LinearOpMode {
         // --- EXECUÇÃO DO AUTÔNOMO ---
         if (opModeIsActive() && !isStopRequested()) {
             intake.sliderMin();
+            claw.setClawOpen(false);
             for (int i=0;i<100;i++){
                 updatePoseLimelight();
-                sleep(2);
+                claw.setClawOpen(false);
+
             }
 
             telemetryA.addData("CICLO 1", "Indo para a Basket com o pré-carregado");
@@ -85,12 +87,12 @@ public class autonomoteste extends LinearOpMode {
             while (!elevator.atTargetPosition(20)) {
                 elevator.update(telemetry);
             }
-
+            claw.setWristPosition(ClawSubsystem.WRIST_LEFT_SCORE_CLAW,ClawSubsystem.WRIST_RIGHT_SCORE_CLAW);
             claw.setArmPosition(ClawSubsystem.ARM_LEFT_SCORE_CLAW, ClawSubsystem.ARM_RIGHT_SCORE_CLAW);
-            sleep(400);
+            sleep(1500);
 
             claw.setClawOpen(true);
-            sleep(500);
+            sleep(1500);
 
             claw.setArmPosition(ClawSubsystem.ARM_LEFT_TRAVEL_CLAW, ClawSubsystem.ARM_RIGHT_TRAVEL_CLAW);
             elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
