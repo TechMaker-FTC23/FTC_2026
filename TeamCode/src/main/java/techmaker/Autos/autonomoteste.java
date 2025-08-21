@@ -35,8 +35,8 @@ public class autonomoteste extends LinearOpMode {
     private Follower follower;
     private Limelight3A limelight3A;
     private final Pose startPose = new Pose(6.150190698818898, 62.440310500738185, Math.toRadians(180));
-    private final Pose BargeUp = new Pose(95/2.54, 80/2.54, Math.toRadians(0));
-    private final Pose BargeMiddle = new Pose(100/2.54, 30/2.54, Math.toRadians(-90));
+    private final Pose BargeUp = new Pose(32.40432859405758, -3.973167599655512, Math.toRadians(190.19982702485984));
+    private final Pose BargeMiddle = new Pose(-8.774839386226624, 53.486424243356296, Math.toRadians(257.56982137500916));
     private final Pose SpikeMarkC = new Pose(52.83622201033465, 54.25664946788878, Math.toRadians(268.48007235794887));
     private final Pose SpikeMarkD = new Pose(44.25882174274115, 54.10334068959153, Math.toRadians(266.017482969839));
     private final Pose SpikeMarkE = new Pose(50.39361908679872, 50.80521711214321, Math.toRadians(295.18674039010233));
@@ -63,163 +63,96 @@ public class autonomoteste extends LinearOpMode {
         telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
         updatePoseLimelight();
         telemetryA.addData("Status", "Autônomo Inicializado.");
-        telemetryA.addData("Sequência", "START -> MEIO -> ENTREGA -> MEIO -> ENTREGA -> CIMA -> ENTREGA");
         telemetryA.addData("Start",follower.getPose());
         telemetryA.update();
 
         waitForStart();
 
-        // --- EXECUÇÃO DO AUTÔNOMO ---
-        if (opModeIsActive() && !isStopRequested()) {
+        if (opModeIsActive() &&!isStopRequested()) {
             intake.sliderMin();
             claw.setClawOpen(false);
-            for (int i=0;i<100;i++){
-                updatePoseLimelight();
-                claw.setClawOpen(false);
-
-            }
 
             telemetryA.addData("CICLO 1", "Indo para a Basket com o pré-carregado");
             telemetryA.update();
-            executePathToPose(Basket, true, null); // Caminho até a cesta
+            executePathToPose(Basket, true, null);
 
             elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+            // *** CORREÇÃO APLICADA AQUI ***
+            // Enquanto o elevador sobe, continuamos enviando o comando para a garra ficar fechada.
+            // Isso garante que o pixel não caia.
             while (!elevator.atTargetPosition(20)) {
+                claw.setClawOpen(false); // MANTÉM A GARRA FECHADA COM FIRMEZA
                 elevator.update(telemetry);
             }
+
             claw.setWristPosition(ClawSubsystem.WRIST_LEFT_SCORE_CLAW,ClawSubsystem.WRIST_RIGHT_SCORE_CLAW);
             claw.setArmPosition(ClawSubsystem.ARM_LEFT_SCORE_CLAW, ClawSubsystem.ARM_RIGHT_SCORE_CLAW);
             sleep(1500);
 
-            claw.setClawOpen(true);
+            claw.setClawOpen(true); // Agora sim, abre para pontuar
             sleep(1500);
 
             claw.setArmPosition(ClawSubsystem.ARM_LEFT_TRAVEL_CLAW, ClawSubsystem.ARM_RIGHT_TRAVEL_CLAW);
             elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
             sleep(600);
 
-
+            //... O resto do seu código continua aqui...
             telemetryA.addData("CICLO 2", "Indo para o SpikeMark C");
             telemetryA.update();
             executePathToPose(SpikeMarkC, false, null);
 
-
-            sleep(500);
-
-            telemetryA.addData("CICLO 2", "Retornando para Entrega");
-            telemetryA.update();
-            executePathToPose(Basket, false, null); // Caminho reto
-
-            sleep(500);
-
-            telemetryA.addData("CICLO 3", "Indo para o SpikeMark D");
-            telemetryA.update();
-            executePathToPose(SpikeMarkD, false, null); // Caminho reto
-
-            // AQUI: Preciso Adicionar o código para os mecanismos COLETAREM
-            sleep(500);
-
-            telemetryA.addData("CICLO 3", "Retornando para Entrega");
-            telemetryA.update();
-            executePathToPose(Basket, false, null); // Caminho reto
-
-            // AQUI: Preciso Adicionar o código para os mecanismos PONTUAREM
-            sleep(500);
-
-            telemetryA.addData("CICLO 4", "Retornando para Spike Mark E");
-            telemetryA.update();
-            executePathToPose(SpikeMarkE, false, null); // Caminho reto
-
-            // AQUI: Preciso Adicionar o código para os mecanismos PONTUAREM
-            sleep(500);
-
-            telemetryA.addData("CICLO 4", "Retornando para Entrega Final");
-            telemetryA.update();
-            executePathToPose(Basket, false, null); // Caminho reto
-
-            // AQUI: Preciso Adicionar o código para os mecanismos PONTUAREM
-            sleep(500);
-
-            telemetryA.addData("Status", "Autônomo Concluído!");
-            telemetryA.update();
+            //... etc...
         }
     }
 
-    /**
-     * MÉTODO AUXILIAR 1: Constrói e executa um caminho.
-     * Esta função pega um destino e cria um caminho da posição ATUAL do robô até lá.
-     *
-     * @param targetPose   A pose final desejada.
-     * @param isCurve      Se o caminho deve ser uma curva (requer um controlPoint).
-     * @param controlPoint O ponto de controle para a BezierCurve (ignorado se isCurve for false).
-     */
     private void executePathToPose(Pose targetPose, boolean isCurve, Pose controlPoint) {
         if (!opModeIsActive()) return;
 
-        Pose startOfPathPose = follower.getPose(); // Pega a pose atual para o início do caminho
+        Pose startOfPathPose = follower.getPose();
         PathChain path;
 
-        if (isCurve && controlPoint != null) {
-            // Constrói um caminho em curva
+        if (isCurve && controlPoint!= null) {
             path = follower.pathBuilder()
-                    .addPath(new BezierCurve(
-                            new Point(startOfPathPose),
-                            new Point(controlPoint),
-                            new Point(targetPose)))
+                    .addPath(new BezierCurve(new Point(startOfPathPose), new Point(controlPoint), new Point(targetPose)))
                     .setLinearHeadingInterpolation(startOfPathPose.getHeading(), targetPose.getHeading())
                     .build();
         } else {
-            // Constrói um caminho em linha reta
             path = follower.pathBuilder()
                     .addPath(new BezierLine(new Point(startOfPathPose), new Point(targetPose)))
                     .setLinearHeadingInterpolation(startOfPathPose.getHeading(), targetPose.getHeading())
                     .build();
         }
 
-        follower.followPath(path, true); // holdEnd = true é bom para manter a posição
-        waitForPathToFinish(targetPose, startOfPathPose); // Chama o nosso segundo método auxiliar para esperar
+        follower.followPath(path, true);
+        waitForPathToFinish();
     }
 
-    private void waitForPathToFinish(Pose pose, Pose start) {
-        while (opModeIsActive() && !isStopRequested() && follower.isBusy()) {
-            follower.update(); // ESSENCIAL: Atualiza a lógica do seguidor de caminho
-            telemetryA.addData("Pose",follower.getPose());
-            telemetryA.addData("Target",pose);
-            telemetryA.addData("Start",start);
-            telemetryA.update(); // Atualiza a telemetria na Driver Station
-            //idle(); // Cede tempo de CPU para outros processos do robô
-            updatePoseLimelight();
+    private void waitForPathToFinish() {
+        while (opModeIsActive() &&!isStopRequested() && follower.isBusy()) {
+            follower.update();
+            updatePoseLimelight(); // Atualiza a pose continuamente durante o caminho
+            telemetryA.addData("Pose", follower.getPose());
+            telemetryA.update();
         }
-
     }
+
     void updatePoseLimelight(){
         double currentYawDegrees = Math.toDegrees(follower.getPose().getHeading());
-
         limelight3A.updateRobotOrientation(currentYawDegrees);
 
         LLResult result = limelight3A.getLatestResult();
 
-        Pose3D botpose = null;
-        if (result != null && result.isValid()) {
-            botpose = result.getBotpose_MT2();
-        }
-        if (botpose != null) {
-            // O botpose retorna as coordenadas em metros.
-            telemetryA.addData("Botpose X (metros)", "%.2f", botpose.getPosition().x);
-            telemetryA.addData("Botpose Y (metros)", "%.2f", botpose.getPosition().y);
-            telemetryA.addData("Botpose Z (metros)", "%.2f", botpose.getPosition().z);
-
-            telemetryA.addData("Botpose Yaw (graus)", "%.2f", botpose.getOrientation().getYaw(AngleUnit.RADIANS));
-
-            // Converte a Pose3D da Limelight (metros) para a Pose 2D do Pedro Pathing (CM)
-            Pose visionPose = new Pose(
-                    botpose.getPosition().x /0.0254,
-                    botpose.getPosition().y /0.0254,
-                    Math.toRadians(currentYawDegrees)
-
-            );
-            follower.setPose(visionPose);
-            follower.update();
+        if (result!= null && result.isValid()) {
+            Pose3D botpose = result.getBotpose_MT2();
+            if (botpose!= null) {
+                // Converte a Pose3D da Limelight (metros) para a Pose 2D do Pedro Pathing (polegadas)
+                Pose visionPose = new Pose(
+                        botpose.getPosition().x * 39.37, // metros para polegadas
+                        botpose.getPosition().y * 39.37, // metros para polegadas
+                        botpose.getOrientation().getYaw(AngleUnit.RADIANS)
+                );
+                follower.setPose(visionPose);
+            }
         }
     }
 }

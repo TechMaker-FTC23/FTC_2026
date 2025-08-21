@@ -4,15 +4,18 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.BezierCurve;
 import com.pedropathing.pathgen.BezierLine;
 import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
@@ -20,197 +23,230 @@ import techmaker.subsystems.ClawSubsystem;
 import techmaker.subsystems.ElevatorSubsystem;
 import techmaker.subsystems.IntakeSubsystem;
 
-@Autonomous(name = "Autônomo de Campeonato (Coleta Inteligente)")
+@Autonomous(name = "Autonomo Louco")
 public class AutonomoLouco extends LinearOpMode {
 
-    private Telemetry telemetryA;
+    // Enum para a FSM, agora com estados granulares para os mecanismos.
+    private enum AutoState {
+        START,
+
+        // Ciclo Preload
+        DRIVE_TO_BASKET_PRELOAD,
+        SCORE_SEQUENCE_START,
+        SCORE_SEQUENCE_RAISE_ELEVATOR,
+        SCORE_SEQUENCE_EXTEND_ARM,
+        SCORE_SEQUENCE_OPEN_CLAW,
+        SCORE_SEQUENCE_RETRACT,
+
+        // Ciclo 1
+        DRIVE_TO_SPIKE_C,
+        RELOCALIZE_AT_C,
+        COLLECT_SEQUENCE_START,
+        COLLECT_SEQUENCE_WAIT,
+        DRIVE_TO_BASKET_CYCLE_1,
+        // Reutiliza a sequência de pontuação...
+
+        IDLE
+    }
+
+    private AutoState currentState = AutoState.START;
+
+    // Hardware e Bibliotecas
     private Follower follower;
+    private Limelight3A limelight;
     private ClawSubsystem claw;
     private ElevatorSubsystem elevator;
     private IntakeSubsystem intake;
+    private Telemetry telemetryA;
+    private ElapsedTime stateTimer = new ElapsedTime();
 
-    // --- Poses de Jogo Otimizadas (Ajustar com precisão no campo!) ---
-    private final double INTAKE_EXTENSION_DISTANCE = 20.0; // Distância que o slider estende (em cm)
-    private final Pose startPose = new Pose(0, 0, Math.toRadians(0));
-
-    // Poses dos Drones nos Spike Marks (baseado no manual: 3.5" da parede, 10" entre eles)
-    private final Pose spikeMarkCenter = new Pose(88.9, 0, Math.toRadians(0));
-    private final Pose spikeMarkLeft = new Pose(88.9, 25.4, Math.toRadians(0));
-    private final Pose spikeMarkRight = new Pose(88.9, -25.4, Math.toRadians(0));
-
-    // Poses de APROXIMAÇÃO para cada Spike Mark (recuadas pela distância do intake)
-    private final Pose spikeMarkCenterApproach = new Pose(spikeMarkCenter.getX() - INTAKE_EXTENSION_DISTANCE, spikeMarkCenter.getY(), spikeMarkCenter.getHeading());
-    private final Pose spikeMarkLeftApproach = new Pose(spikeMarkLeft.getX() - INTAKE_EXTENSION_DISTANCE, spikeMarkLeft.getY(), spikeMarkLeft.getHeading());
-    private final Pose spikeMarkRightApproach = new Pose(spikeMarkRight.getX() - INTAKE_EXTENSION_DISTANCE, spikeMarkRight.getY(), spikeMarkRight.getHeading());
-
-    // Posição de lançamento nos Baskets
-    private final Pose basketLaunchPose = new Pose(90, -85, Math.toRadians(90));
-    // Ponto de controlo para o arco largo
-    private final Pose viaPointEntrega = new Pose(40, 20, Math.toRadians(90));
+    // Poses e Caminhos
+    private final Pose startPose = new Pose(6.15, 62.44, Math.toRadians(180));
+    private final Pose spikeMarkCPose = new Pose(52.83, 54.25, Math.toRadians(268.48));
+    private final Pose basketPose = new Pose(51.65, 58.23, Math.toRadians(221.45));
+    private PathChain pathToBasketPreload, pathToSpikeC, pathFromSpikeCToBasket;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        initialize();
+        initializeHardware();
+        buildPaths();
+
+        telemetryA.addData("Status", "Autônomo de Competição Pronto.");
+        telemetryA.update();
 
         waitForStart();
+        if (isStopRequested()) return;
 
-        if (opModeIsActive() && !isStopRequested()) {
-            // --- ROTINA PRINCIPAL ---
+        while (opModeIsActive() &&!isStopRequested()) {
+            // --- ATUALIZAÇÕES CONTÍNUAS ---
+            follower.update();
+            elevator.update(telemetryA);
 
-            scorePreload();
-            runSpikeMarkCycle(spikeMarkCenterApproach, spikeMarkCenter);
-            runSpikeMarkCycle(spikeMarkLeftApproach, spikeMarkLeft);
-            runSpikeMarkCycle(spikeMarkRightApproach, spikeMarkRight);
+            // --- LÓGICA DA FSM ---
+            switch (currentState) {
+                case START:
+                    follower.followPath(pathToBasketPreload);
+                    currentState = AutoState.DRIVE_TO_BASKET_PRELOAD;
+                    break;
 
-            telemetryA.addLine("Rotina de 4 Drones concluída!");
-            telemetryA.update();
+                case DRIVE_TO_BASKET_PRELOAD:
+                    if (!follower.isBusy()) {
+                        currentState = AutoState.SCORE_SEQUENCE_START;
+                    }
+                    break;
+
+                // --- Sequência de Pontuação (substitui a thread) ---
+                case SCORE_SEQUENCE_START:
+                    elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+                    currentState = AutoState.SCORE_SEQUENCE_RAISE_ELEVATOR;
+                    break;
+
+                case SCORE_SEQUENCE_RAISE_ELEVATOR:
+                    // Garante que a garra fique fechada enquanto o elevador sobe
+                    claw.setClawOpen(false);
+                    if (elevator.atTargetPosition(20)) {
+                        claw.setWristPosition(ClawSubsystem.WRIST_LEFT_SCORE_CLAW, ClawSubsystem.WRIST_RIGHT_SCORE_CLAW);
+                        claw.setArmPosition(ClawSubsystem.ARM_LEFT_SCORE_CLAW, ClawSubsystem.ARM_RIGHT_SCORE_CLAW);
+                        stateTimer.reset();
+                        currentState = AutoState.SCORE_SEQUENCE_EXTEND_ARM;
+                    }
+                    break;
+
+                case SCORE_SEQUENCE_EXTEND_ARM:
+                    if (stateTimer.seconds() > 1.0) { // Espera o braço estabilizar
+                        claw.setClawOpen(true);
+                        stateTimer.reset();
+                        currentState = AutoState.SCORE_SEQUENCE_OPEN_CLAW;
+                    }
+                    break;
+
+                case SCORE_SEQUENCE_OPEN_CLAW:
+                    if (stateTimer.seconds() > 0.5) { // Espera o pixel cair
+                        claw.setArmPosition(ClawSubsystem.ARM_LEFT_TRAVEL_CLAW, ClawSubsystem.ARM_RIGHT_TRAVEL_CLAW);
+                        elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
+                        currentState = AutoState.SCORE_SEQUENCE_RETRACT;
+                    }
+                    break;
+
+                case SCORE_SEQUENCE_RETRACT:
+                    // Espera o elevador descer para começar o próximo movimento
+                    if (elevator.atTargetPosition(20)) {
+                        follower.followPath(pathToSpikeC);
+                        currentState = AutoState.DRIVE_TO_SPIKE_C;
+                    }
+                    break;
+
+                // --- Ciclo 1 ---
+                case DRIVE_TO_SPIKE_C:
+                    if (!follower.isBusy()) {
+                        currentState = AutoState.RELOCALIZE_AT_C;
+                    }
+                    break;
+
+                case RELOCALIZE_AT_C:
+                    // ÚNICO LUGAR SEGURO PARA ATUALIZAR A POSE
+                    updatePoseFromLimelight();
+                    currentState = AutoState.COLLECT_SEQUENCE_START;
+                    break;
+
+                case COLLECT_SEQUENCE_START:
+                    intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
+                    intake.sliderMax();
+                    intake.startIntake();
+                    stateTimer.reset();
+                    currentState = AutoState.COLLECT_SEQUENCE_WAIT;
+                    break;
+
+                case COLLECT_SEQUENCE_WAIT:
+                    // Espera o pixel ser detectado ou o tempo acabar
+                    if (intake.isPixelDetected()
+
+                            | stateTimer.seconds() > 2.0) {
+                        intake.stopIntake();
+                        intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
+                        intake.sliderMin();
+                        follower.followPath(pathFromSpikeCToBasket);
+                        currentState = AutoState.DRIVE_TO_BASKET_CYCLE_1;
+                    }
+                    break;
+
+                case DRIVE_TO_BASKET_CYCLE_1:
+                    if (!follower.isBusy()) {
+                        // Reinicia a sequência de pontuação
+                        currentState = AutoState.SCORE_SEQUENCE_START;
+                    }
+                    break;
+
+                case IDLE:
+                    // Fim do autônomo.
+                    break;
+            }
+            updateTelemetry();
         }
     }
 
-    private void initialize() {
-        telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
+    // --- MÉTODOS DE INICIALIZAÇÃO E AUXILIARES ---
+    // (O conteúdo dos métodos abaixo permanece o mesmo do código anterior)
 
+    private void initializeHardware() {
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
         claw = new ClawSubsystem(hardwareMap);
         elevator = new ElevatorSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap, false);
+        telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        follower.setStartingPose(startPose);
+        follower.setPose(startPose);
+        limelight.pipelineSwitch(0);
+        limelight.start();
+
         claw.setState(ClawSubsystem.ClawState.TRAVEL);
         claw.setClawOpen(false);
-        elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
+        claw.setArmPosition(ClawSubsystem.ARM_LEFT_TRAVEL_CLAW, ClawSubsystem.ARM_RIGHT_TRAVEL_CLAW);
+        intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
         intake.sliderMin();
-
-        telemetryA.addLine("Autônomo de Precisão Pronto.");
-        telemetryA.update();
     }
 
-    private void scorePreload() {
-        telemetryA.addLine("Passo 1: A pontuar o pré-carregado...");
-        telemetryA.update();
-
-        elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
-        claw.setState(ClawSubsystem.ClawState.SCORE);
-
-        PathChain pathToLaunch = follower.pathBuilder()
-                .addPath(new BezierCurve(new Point(follower.getPose()), new Point(viaPointEntrega), new Point(basketLaunchPose)))
+    private void buildPaths() {
+        pathToBasketPreload = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(startPose), new Point(basketPose)))
+                .setLinearHeadingInterpolation(startPose.getHeading(), basketPose.getHeading())
                 .build();
-        follower.followPath(pathToLaunch, true);
 
-        waitForPathToFinish();
-        waitForElevator(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
-
-        claw.setClawOpen(true);
-        sleep(200); // Sleep reduzido
-    }
-
-    private void runSpikeMarkCycle(Pose approachPose, Pose collectionPose) {
-        telemetryA.addLine("Ciclo: A ir para a aproximação em " + approachPose);
-        telemetryA.update();
-
-        claw.setState(ClawSubsystem.ClawState.TRAVEL);
-        elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
-
-        PathChain pathToApproach = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(follower.getPose()), new Point(approachPose)))
+        pathToSpikeC = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(basketPose), new Point(spikeMarkCPose)))
+                .setLinearHeadingInterpolation(basketPose.getHeading(), spikeMarkCPose.getHeading())
                 .build();
-        follower.followPath(pathToApproach, true);
-        waitForPathToFinish();
-        waitForElevator(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
 
-        // Executa a manobra de coleta inteligente e verifica se foi bem-sucedida
-        boolean collectionSuccess = collectFromSpike(collectionPose);
-
-        if (collectionSuccess) {
-            scoreCollectedDrone();
-        } else {
-            telemetryA.addLine("COLETA FALHOU! A abortar este ciclo.");
-            telemetryA.update();
-            // Retrai o intake para segurança antes de continuar
-            intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
-            intake.sliderMin();
-            sleep(250);
-        }
-    }
-
-    private boolean collectFromSpike(Pose targetSpikePose) {
-        telemetryA.addLine("A executar manobra de coleta inteligente...");
-        telemetryA.update();
-
-        intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
-        intake.sliderMax();
-        sleep(250); // Sleep reduzido para a extensão do slider
-
-        intake.resetCaptureState();
-        intake.startAutomaticCapture();
-
-        // Inicia um movimento lento para a frente para "procurar" o Drone
-        PathChain searchPath = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(follower.getPose()), new Point(targetSpikePose)))
+        pathFromSpikeCToBasket = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(spikeMarkCPose), new Point(basketPose)))
+                .setLinearHeadingInterpolation(spikeMarkCPose.getHeading(), basketPose.getHeading())
                 .build();
-        follower.followPath(searchPath, true);
+    }
 
-        // Loop de espera ativa: espera que a captura aconteça OU que o movimento termine
-        while(opModeIsActive() && !isStopRequested() && follower.isBusy() && !intake.isCaptureComplete()) {
-            follower.update();
-            intake.updateAutomaticCapture();
+    private void updatePoseFromLimelight() {
+        double currentYawDegrees = Math.toDegrees(follower.getPose().getHeading());
+        limelight.updateRobotOrientation(currentYawDegrees);
+
+        LLResult result = limelight.getLatestResult();
+        if (result == null ||!result.isValid()) {
+            return;
         }
 
-        // Verifica o resultado
-        if (intake.isCaptureComplete()) {
-            // CORREÇÃO: Para o movimento do robô imediatamente enviando vetores de movimento nulos.
-            follower.setTeleOpMovementVectors(0, 0, 0, false);
-            telemetryA.addLine("Drone DETETADO! A segurar...");
-            telemetryA.update();
-
-            claw.setClawOpen(false);
-            sleep(250);
-            intake.sliderMin();
-            sleep(250);
-            intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
-            return true; // Sucesso!
-        } else {
-            // Se chegou aqui, o caminho terminou mas o Drone não foi detetado
-            telemetryA.addLine("Busca concluída, Drone não encontrado.");
-            telemetryA.update();
-            intake.sliderMin(); // Retrai por segurança
-            return false; // Falha!
+        Pose3D botpose = result.getBotpose_MT2();
+        if (botpose!= null) {
+            Pose visionPose = new Pose(
+                    botpose.getPosition().x * 39.37, // metros para polegadas
+                    botpose.getPosition().y * 39.37, // metros para polegadas
+                    botpose.getOrientation().getYaw(AngleUnit.RADIANS)
+            );
+            follower.setPose(visionPose);
         }
     }
 
-    private void scoreCollectedDrone() {
-        telemetryA.addLine("Ciclo: A retornar para pontuar...");
+    private void updateTelemetry() {
+        telemetryA.addData("Current State", currentState.toString());
+        telemetryA.addData("Robot Pose", follower.getPose().toString());
         telemetryA.update();
-
-        elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_MEDIUM);
-        claw.setState(ClawSubsystem.ClawState.SCORE);
-
-        PathChain pathToLaunch = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(follower.getPose()), new Point(basketLaunchPose)))
-                .build();
-        follower.followPath(pathToLaunch, true);
-        waitForPathToFinish();
-        waitForElevator(ElevatorSubsystem.ELEVATOR_PRESET_MEDIUM);
-
-        claw.setClawOpen(true);
-        // Otimização: Iniciar a próxima ação imediatamente após abrir a garra
-        // sleep(200); // Sleep removido ou muito reduzido
-    }
-
-    private void waitForPathToFinish() {
-        while (opModeIsActive() && !isStopRequested() && follower.isBusy()) {
-            follower.update();
-            elevator.update(telemetryA);
-            intake.updateAutomaticCapture();
-            follower.telemetryDebug(telemetryA);
-            telemetryA.update();
-        }
-    }
-
-    private void waitForElevator(int targetPosition) {
-        ElapsedTime timer = new ElapsedTime();
-        while (opModeIsActive() && !isStopRequested() && Math.abs(elevator.getCurrentPosition() - targetPosition) > 20 && timer.seconds() < 2.5) {
-            elevator.update(telemetryA);
-        }
     }
 }

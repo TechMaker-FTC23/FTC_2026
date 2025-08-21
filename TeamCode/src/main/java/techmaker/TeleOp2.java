@@ -4,14 +4,13 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
-import com.pedropathing.util.Drawing;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
@@ -32,9 +31,12 @@ public class TeleOp2 extends OpMode {
     private StateMachine state = StateMachine.IDLE;
     private StateMachine stateClawSample = StateMachine.CLAW_SPECIMENT;
     private final Pose startPose = new Pose(0,0,180);
-
+    private final Pose BargeUp = new Pose(95/2.54, 80/2.54, Math.toRadians(0));
+    private final Pose BargeMiddle = new Pose(100/2.54, 30/2.54, Math.toRadians(-90));
+    private final Pose Basket = new Pose(51.65671040692668, 58.230110228531004, Math.toRadians(221.45235477987202));
     private final ElapsedTime timer = new ElapsedTime();
     private long timeout = 0;
+
 
     @Override
     public void init() {
@@ -75,12 +77,17 @@ public class TeleOp2 extends OpMode {
 
     @Override
     public void loop() {
-        double heading = follower.getPose().getHeading();
-        double y = gamepad1.left_stick_y;
-        double x = -gamepad1.left_stick_x;
-        double turn = -gamepad1.right_stick_x;
+            double y_stick = -gamepad1.left_stick_y;
+            double x_stick = gamepad1.left_stick_x;
+            double turn_stick = gamepad1.right_stick_x;
 
-        follower.setTeleOpMovementVectors(x,y,turn,false);
+            double heading = follower.getPose().getHeading();
+
+            double rotatedX = x_stick * Math.cos(heading) + y_stick * Math.sin(heading);
+            double rotatedY = -x_stick * Math.sin(heading) + y_stick * Math.cos(heading);
+
+            follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn_stick, true);
+
         follower.update();
 
         Pose pose= getVisionPose();
@@ -88,7 +95,6 @@ public class TeleOp2 extends OpMode {
             follower.setPose(pose);
         }
         intake.maintainSliderPosition();
-
 
         if (gamepad2.triangle && state == StateMachine.IDLE) {
             state = StateMachine.START_INTAKE;
@@ -101,7 +107,6 @@ public class TeleOp2 extends OpMode {
             timeout = 100;
             timer.reset();
 
-
         }
 
         if (gamepad2.right_bumper && stateClawSample == StateMachine.CLAW_SPECIMENT) {
@@ -112,7 +117,7 @@ public class TeleOp2 extends OpMode {
             timer.reset();
         } else if (gamepad2.left_bumper && stateClawSample == StateMachine.DELIVERY_SPECIMENT) {
             stateClawSample = StateMachine.CLAW_RETRACT;
-            // MUDANÇA: Usa o novo método para abrir a garra.
+
             claw.setClawOpen(true);
             timeout = 200;
             timer.reset();
