@@ -36,14 +36,20 @@ public class AutonomoLouco extends LinearOpMode {
         SCORE_SEQUENCE_RAISE_ELEVATOR,
         SCORE_SEQUENCE_EXTEND_ARM,
         SCORE_SEQUENCE_OPEN_CLAW,
-        SCORE_SEQUENCE_RETRACT,
+        SCORE_SEQUENCE_RETRACT_C,
 
         // Ciclo 1
         DRIVE_TO_SPIKE_C,
         RELOCALIZE_AT_C,
+        DRIVE_TO_SPIKE_D,
+        RELOCALIZE_AT_D,
         COLLECT_SEQUENCE_START,
         COLLECT_SEQUENCE_WAIT,
+        COLLECT_SEQUENCE_START_D,
+        COLLECT_SEQUENCE_WAIT_D,
         DRIVE_TO_BASKET_CYCLE_1,
+        DRIVE_TO_BASKET_CYCLE_2,
+        DRIVE_TO_BASKET_CYCLE_3,
         // Reutiliza a sequência de pontuação...
 
         IDLE
@@ -61,10 +67,15 @@ public class AutonomoLouco extends LinearOpMode {
     private ElapsedTime stateTimer = new ElapsedTime();
 
     // Poses e Caminhos
-    private final Pose startPose = new Pose(6.15, 62.44, Math.toRadians(180));
-    private final Pose spikeMarkCPose = new Pose(52.83, 54.25, Math.toRadians(268.48));
-    private final Pose basketPose = new Pose(51.65, 58.23, Math.toRadians(221.45));
-    private PathChain pathToBasketPreload, pathToSpikeC, pathFromSpikeCToBasket;
+    private final Pose startPose = new Pose(25.221, 62.44, Math.toRadians(180));
+    private final Pose spikeMarkCPose = new Pose(52.770, 52.593, Math.toRadians(267.57));
+    private final Pose spikeMarkCMidPose = new Pose(52.770, 52.593, Math.toRadians(267.57));
+    private final Pose SpikeMarkDPose = new Pose(43.319, 53.6127, Math.toRadians(268.13));
+    private final Pose SpikeMarkEPose = new Pose(51.53, 52.859, Math.toRadians(294.33));
+    private final Pose basketPose = new Pose(54.64, 60.756, Math.toRadians(224.55));
+
+    private PathChain pathToBasketPreload, pathToSpikeC, pathFromSpikeCToBasket, pathToSpikeE, pathFromSpikeEToBasket, pathToSpikeD, getPathFromSpikeDToBasket;
+
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -95,15 +106,26 @@ public class AutonomoLouco extends LinearOpMode {
                     }
                     break;
 
+
                 // --- Sequência de Pontuação (substitui a thread) ---
                 case SCORE_SEQUENCE_START:
-                    elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+
+                    if (stateTimer.seconds() > 0.2) {
+                    }
+
+                        claw.setArmPosition(ClawSubsystem.ARM_LEFT_INTAKE_CLAW, ClawSubsystem.ARM_RIGHT_INTAKE_CLAW);
+                        claw.setClawOpen(false);
+                    if (stateTimer.seconds() > 0.4) {
+                        intake.reverseIntake();
+                    }
+
+
+                    if (stateTimer.seconds() > 0.6) { elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+                    }
                     currentState = AutoState.SCORE_SEQUENCE_RAISE_ELEVATOR;
                     break;
 
                 case SCORE_SEQUENCE_RAISE_ELEVATOR:
-                    // Garante que a garra fique fechada enquanto o elevador sobe
-                    claw.setClawOpen(false);
                     if (elevator.atTargetPosition(20)) {
                         claw.setWristPosition(ClawSubsystem.WRIST_LEFT_SCORE_CLAW, ClawSubsystem.WRIST_RIGHT_SCORE_CLAW);
                         claw.setArmPosition(ClawSubsystem.ARM_LEFT_SCORE_CLAW, ClawSubsystem.ARM_RIGHT_SCORE_CLAW);
@@ -113,7 +135,7 @@ public class AutonomoLouco extends LinearOpMode {
                     break;
 
                 case SCORE_SEQUENCE_EXTEND_ARM:
-                    if (stateTimer.seconds() > 1.0) { // Espera o braço estabilizar
+                    if (stateTimer.seconds() > 1.0) {
                         claw.setClawOpen(true);
                         stateTimer.reset();
                         currentState = AutoState.SCORE_SEQUENCE_OPEN_CLAW;
@@ -121,16 +143,23 @@ public class AutonomoLouco extends LinearOpMode {
                     break;
 
                 case SCORE_SEQUENCE_OPEN_CLAW:
-                    if (stateTimer.seconds() > 0.5) { // Espera o pixel cair
+                    if (stateTimer.seconds() > 0.5) {
                         claw.setArmPosition(ClawSubsystem.ARM_LEFT_TRAVEL_CLAW, ClawSubsystem.ARM_RIGHT_TRAVEL_CLAW);
+                        claw.setWristPosition(ClawSubsystem.WRIST_LEFT_TRAVEL_CLAW, ClawSubsystem.WRIST_RIGHT_TRAVEL_CLAW);
                         elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
-                        currentState = AutoState.SCORE_SEQUENCE_RETRACT;
+                        currentState = AutoState.SCORE_SEQUENCE_RETRACT_C;
                     }
                     break;
 
-                case SCORE_SEQUENCE_RETRACT:
-                    // Espera o elevador descer para começar o próximo movimento
+                case SCORE_SEQUENCE_RETRACT_C:
                     if (elevator.atTargetPosition(20)) {
+
+                     if (stateTimer.seconds() > 0.7){ intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
+                        intake.sliderMax();
+                        intake.startIntake();
+                        stateTimer.reset();
+                        }
+
                         follower.followPath(pathToSpikeC);
                         currentState = AutoState.DRIVE_TO_SPIKE_C;
                     }
@@ -144,7 +173,6 @@ public class AutonomoLouco extends LinearOpMode {
                     break;
 
                 case RELOCALIZE_AT_C:
-                    // ÚNICO LUGAR SEGURO PARA ATUALIZAR A POSE
                     updatePoseFromLimelight();
                     currentState = AutoState.COLLECT_SEQUENCE_START;
                     break;
@@ -158,7 +186,6 @@ public class AutonomoLouco extends LinearOpMode {
                     break;
 
                 case COLLECT_SEQUENCE_WAIT:
-                    // Espera o pixel ser detectado ou o tempo acabar
                     if (intake.isPixelDetected()
 
                             | stateTimer.seconds() > 2.0) {
@@ -172,13 +199,11 @@ public class AutonomoLouco extends LinearOpMode {
 
                 case DRIVE_TO_BASKET_CYCLE_1:
                     if (!follower.isBusy()) {
-                        // Reinicia a sequência de pontuação
                         currentState = AutoState.SCORE_SEQUENCE_START;
                     }
                     break;
 
                 case IDLE:
-                    // Fim do autônomo.
                     break;
             }
             updateTelemetry();
@@ -215,12 +240,32 @@ public class AutonomoLouco extends LinearOpMode {
 
         pathToSpikeC = follower.pathBuilder()
                 .addPath(new BezierLine(new Point(basketPose), new Point(spikeMarkCPose)))
-                .setLinearHeadingInterpolation(basketPose.getHeading(), spikeMarkCPose.getHeading())
+                .setConstantHeadingInterpolation(spikeMarkCPose.getHeading())
                 .build();
 
         pathFromSpikeCToBasket = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(spikeMarkCPose), new Point(basketPose)))
-                .setLinearHeadingInterpolation(spikeMarkCPose.getHeading(), basketPose.getHeading())
+                .addPath(new BezierLine(new Point(SpikeMarkEPose), new Point(basketPose)))
+                .setLinearHeadingInterpolation(SpikeMarkEPose.getHeading(), basketPose.getHeading())
+                .build();
+
+        getPathFromSpikeDToBasket = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(basketPose), new Point(SpikeMarkDPose)))
+                .setLinearHeadingInterpolation(basketPose.getHeading(), SpikeMarkDPose.getHeading())
+                .build();
+
+        pathToSpikeD = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(SpikeMarkDPose), new Point(basketPose)))
+                .setLinearHeadingInterpolation(SpikeMarkDPose.getHeading(), basketPose.getHeading())
+                .build();
+
+        pathToSpikeE = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(basketPose), new Point(SpikeMarkEPose)))
+                .setLinearHeadingInterpolation(basketPose.getHeading(), SpikeMarkEPose.getHeading())
+                .build();
+
+        pathFromSpikeEToBasket = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(SpikeMarkEPose), new Point(basketPose)))
+                .setLinearHeadingInterpolation(SpikeMarkEPose.getHeading(), basketPose.getHeading())
                 .build();
     }
 

@@ -108,9 +108,9 @@ public class IntakeSubsystem {
     }
 
     public void reverseIntake() {
-        leftIntake.setPower(1.0);
-        rightIntake.setPower(1.0);
-        middleIntake.setPower(1.0);
+        leftIntake.setPower(0.8);
+        rightIntake.setPower(0.8);
+        middleIntake.setPower(0.8);
     }
 
     public void stopIntake() {

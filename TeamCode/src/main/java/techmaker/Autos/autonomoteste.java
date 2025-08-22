@@ -40,8 +40,7 @@ public class autonomoteste extends LinearOpMode {
     private final Pose SpikeMarkC = new Pose(52.83622201033465, 54.25664946788878, Math.toRadians(268.48007235794887));
     private final Pose SpikeMarkD = new Pose(44.25882174274115, 54.10334068959153, Math.toRadians(266.017482969839));
     private final Pose SpikeMarkE = new Pose(50.39361908679872, 50.80521711214321, Math.toRadians(295.18674039010233));
-    private final Pose Basket = new Pose(51.65671040692668, 58.230110228531004, Math.toRadians(221.45235477987202));
-
+    private final Pose basketPose = new Pose(52, 59, Math.toRadians(227));
     @Override
     public void runOpMode() throws InterruptedException {
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
@@ -74,12 +73,10 @@ public class autonomoteste extends LinearOpMode {
 
             telemetryA.addData("CICLO 1", "Indo para a Basket com o pré-carregado");
             telemetryA.update();
-            executePathToPose(Basket, true, null);
+            executePathToPose(basketPose, true, null);
 
             elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
-            // *** CORREÇÃO APLICADA AQUI ***
-            // Enquanto o elevador sobe, continuamos enviando o comando para a garra ficar fechada.
-            // Isso garante que o pixel não caia.
+
             while (!elevator.atTargetPosition(20)) {
                 claw.setClawOpen(false); // MANTÉM A GARRA FECHADA COM FIRMEZA
                 elevator.update(telemetry);

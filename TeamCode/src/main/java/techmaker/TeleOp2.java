@@ -53,7 +53,6 @@ public class TeleOp2 extends OpMode {
         claw.setState(ClawSubsystem.ClawState.TRAVEL);
         claw.setClawOpen(true); // Começa com a garra aberta
         claw.setArmPosition(ClawSubsystem.ARM_LEFT_TRAVEL_CLAW, ClawSubsystem.ARM_RIGHT_TRAVEL_CLAW);
-
         intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
         intake.sliderMin();
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -77,16 +76,17 @@ public class TeleOp2 extends OpMode {
 
     @Override
     public void loop() {
-            double y_stick = -gamepad1.left_stick_y;
-            double x_stick = gamepad1.left_stick_x;
-            double turn_stick = gamepad1.right_stick_x;
+            double y = -gamepad1.left_stick_y;
+            double x = -gamepad1.left_stick_x;
+            double turn = -gamepad1.right_stick_x;
 
             double heading = follower.getPose().getHeading();
 
-            double rotatedX = x_stick * Math.cos(heading) + y_stick * Math.sin(heading);
-            double rotatedY = -x_stick * Math.sin(heading) + y_stick * Math.cos(heading);
+        double rotatedX = x * Math.cos(-heading) - y * Math.sin(-heading);
+        double rotatedY = x * Math.sin(-heading) + y * Math.cos(-heading);
 
-            follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn_stick, true);
+
+        follower.setTeleOpMovementVectors(rotatedY, rotatedX, turn, true);
 
         follower.update();
 
