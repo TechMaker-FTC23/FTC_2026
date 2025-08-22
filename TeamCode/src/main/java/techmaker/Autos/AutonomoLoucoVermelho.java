@@ -23,8 +23,8 @@ import techmaker.subsystems.ClawSubsystem;
 import techmaker.subsystems.ElevatorSubsystem;
 import techmaker.subsystems.IntakeSubsystem;
 
-@Autonomous(name = "Autonomo Louco")
-public class AutonomoLouco extends LinearOpMode {
+@Autonomous(name = "Autonomo Louco Vermelho")
+public class AutonomoLoucoVermelho extends LinearOpMode {
 
     // Enum para a FSM, agora com estados granulares para os mecanismos.
     private enum AutoState {
@@ -63,12 +63,12 @@ public class AutonomoLouco extends LinearOpMode {
     private ElapsedTime stateTimer = new ElapsedTime();
 
     // Poses e Caminhos
-    private final Pose startPose = new Pose(25.221, 62.44, Math.toRadians(180));
-    private final Pose spikeMarkCPose = new Pose(53.770, 52.593, Math.toRadians(267.57));
-    private final Pose SpikeMarkDPose = new Pose(44.319, 53.6127, Math.toRadians(268.13));
-    private final Pose SpikeMarkEPose = new Pose(52.53, 52.859, Math.toRadians(294.33));
-    private final Pose basketPose = new Pose(55.8, 58.4, Math.toRadians(230));
-    private final Pose bargePose = new Pose(32.40432859405758, -3.973167599655512, Math.toRadians(190.19982702485984));
+    private final Pose startPose = new Pose(-25.221, -62.44, Math.toRadians(0));
+    private final Pose spikeMarkCPose = new Pose(-53.770, -52.593, Math.toRadians(267.57-180));
+    private final Pose SpikeMarkDPose = new Pose(-44.319, -53.6127, Math.toRadians(268.13-180));
+    private final Pose SpikeMarkEPose = new Pose(-52.53, -52.859, Math.toRadians(294.33-180));
+    private final Pose basketPose = new Pose(-55.8, -58.4, Math.toRadians(230-180));
+    private final Pose bargePose = new Pose(-32.40432859405758, 3.973167599655512, Math.toRadians(190.19982702485984-180));
     private PathChain pathToBasketPreload, pathToSpikeC, pathFromSpikeCToBasket, pathToSpikeE, pathFromSpikeEToBasket, pathToSpikeD, pathFromSpikeDToBasket, pathToBarge;
 
 
@@ -106,8 +106,8 @@ public class AutonomoLouco extends LinearOpMode {
 
                 // --- Sequência de Pontuação (substitui a thread) ---
                 case SCORE_SEQUENCE_START:
-                        claw.setArmPosition(ClawSubsystem.ARM_LEFT_INTAKE_CLAW, ClawSubsystem.ARM_RIGHT_INTAKE_CLAW);
-                        claw.setClawOpen(false);
+                    claw.setArmPosition(ClawSubsystem.ARM_LEFT_INTAKE_CLAW, ClawSubsystem.ARM_RIGHT_INTAKE_CLAW);
+                    claw.setClawOpen(false);
                     if (stateTimer.seconds() > 0.2) {
                         intake.reverseIntake();
                     }
@@ -155,21 +155,21 @@ public class AutonomoLouco extends LinearOpMode {
                         intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
                         intake.sliderMax();
                         intake.startIntake();
-                     if (stateTimer.seconds() > 1.5){
-                         if(actualSample==0) {
-                             follower.followPath(pathToSpikeC);
-                         }
-                         if(actualSample==1){
-                             follower.followPath(pathToSpikeD);
-                         }
-                         if(actualSample==2){
-                             follower.followPath(pathToSpikeE);
-                         }
-                         currentState = AutoState.DRIVE_TO_SPIKE_C;
+                        if (stateTimer.seconds() > 1.5){
+                            if(actualSample==0) {
+                                follower.followPath(pathToSpikeC);
+                            }
+                            if(actualSample==1){
+                                follower.followPath(pathToSpikeD);
+                            }
+                            if(actualSample==2){
+                                follower.followPath(pathToSpikeE);
+                            }
+                            currentState = AutoState.DRIVE_TO_SPIKE_C;
 
-                         stateTimer.reset();
+                            stateTimer.reset();
 
-                     }
+                        }
 
 
                     }
@@ -244,7 +244,7 @@ public class AutonomoLouco extends LinearOpMode {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         claw = new ClawSubsystem(hardwareMap);
         elevator = new ElevatorSubsystem(hardwareMap);
-        intake = new IntakeSubsystem(hardwareMap, false);
+        intake = new IntakeSubsystem(hardwareMap, true);
         telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
 
         follower.setPose(startPose);
