@@ -80,13 +80,25 @@ public class AutonomoLouco extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         initializeHardware();
-        buildPaths();
 
         telemetryA.addData("Status", "Autônomo de Competição Pronto.");
         telemetryA.update();
 
-        waitForStart();
+        while(!isStarted()) {
+            Pose actual = follower.getPose();
+            updatePoseFromLimelight();
+            follower.update();
+            telemetryA.addData("Status", "Autônomo Inicializado.");
+
+            telemetryA.addData("Start", actual);
+
+            telemetryA.addData("Pose inicial correta", actual.roughlyEquals(startPose, 10));
+            telemetryA.addData("Cor", intake.getColor());
+            telemetryA.update();
+            idle();
+        }
         if (isStopRequested()) return;
+        buildPaths();
 
         while (opModeIsActive() &&!isStopRequested()) {
             // --- ATUALIZAÇÕES CONTÍNUAS ---
@@ -234,8 +246,8 @@ public class AutonomoLouco extends LinearOpMode {
 
     private void buildPaths() {
         pathToBasketPreload = follower.pathBuilder()
-                .addPath(new BezierLine(new Point(startPose), new Point(basketPose)))
-                .setLinearHeadingInterpolation(startPose.getHeading(), basketPose.getHeading())
+                .addPath(new BezierLine(new Point(follower.getPose()), new Point(basketPose)))
+                .setLinearHeadingInterpolation(follower.getPose().getHeading(), basketPose.getHeading())
                 .build();
 
         pathToSpikeC = follower.pathBuilder()
