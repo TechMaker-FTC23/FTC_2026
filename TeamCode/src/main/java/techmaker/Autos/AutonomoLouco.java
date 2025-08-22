@@ -82,21 +82,10 @@ public class AutonomoLouco extends LinearOpMode {
         initializeHardware();
 
         telemetryA.addData("Status", "Autônomo de Competição Pronto.");
+        telemetryA.addData("Pose",follower.getPose());
         telemetryA.update();
 
-        while(!isStarted()) {
-            Pose actual = follower.getPose();
-            updatePoseFromLimelight();
-            follower.update();
-            telemetryA.addData("Status", "Autônomo Inicializado.");
-
-            telemetryA.addData("Start", actual);
-
-            telemetryA.addData("Pose inicial correta", actual.roughlyEquals(startPose, 10));
-            telemetryA.addData("Cor", intake.getColor());
-            telemetryA.update();
-            idle();
-        }
+        waitForStart();
         if (isStopRequested()) return;
         buildPaths();
 
@@ -122,8 +111,7 @@ public class AutonomoLouco extends LinearOpMode {
                 // --- Sequência de Pontuação (substitui a thread) ---
                 case SCORE_SEQUENCE_START:
 
-                    if (stateTimer.seconds() > 0.2) {
-                    }
+
 
                         claw.setArmPosition(ClawSubsystem.ARM_LEFT_INTAKE_CLAW, ClawSubsystem.ARM_RIGHT_INTAKE_CLAW);
                         claw.setClawOpen(false);
@@ -132,9 +120,11 @@ public class AutonomoLouco extends LinearOpMode {
                     }
 
 
-                    if (stateTimer.seconds() > 0.6) { elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+                    if (stateTimer.seconds() > 0.6) {
+                        elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
+                        currentState = AutoState.SCORE_SEQUENCE_RAISE_ELEVATOR;
                     }
-                    currentState = AutoState.SCORE_SEQUENCE_RAISE_ELEVATOR;
+
                     break;
 
                 case SCORE_SEQUENCE_RAISE_ELEVATOR:
@@ -169,7 +159,7 @@ public class AutonomoLouco extends LinearOpMode {
                         intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
                         intake.sliderMax();
                         intake.startIntake();
-                     if (stateTimer.seconds() > 0.7){
+                     if (stateTimer.seconds() > 1.5){
                          follower.followPath(pathToSpikeC);
                          currentState = AutoState.DRIVE_TO_SPIKE_C;
                          stateTimer.reset();
@@ -214,6 +204,7 @@ public class AutonomoLouco extends LinearOpMode {
 
                 case DRIVE_TO_BASKET_CYCLE_1:
                     if (!follower.isBusy()) {
+                        stateTimer.reset();
                         currentState = AutoState.SCORE_SEQUENCE_START;
                     }
                     break;
@@ -237,8 +228,12 @@ public class AutonomoLouco extends LinearOpMode {
         telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
 
         follower.setPose(startPose);
+        follower.update();
+
         limelight.pipelineSwitch(0);
         limelight.start();
+        limelight.updateRobotOrientation(Math.toDegrees(startPose.getHeading()));
+        updatePoseFromLimelight();
 
         claw.setState(ClawSubsystem.ClawState.TRAVEL);
         claw.setClawOpen(false);
@@ -301,6 +296,7 @@ public class AutonomoLouco extends LinearOpMode {
                     botpose.getOrientation().getYaw(AngleUnit.RADIANS)
             );
             follower.setPose(visionPose);
+            follower.update();
         }
     }
 
