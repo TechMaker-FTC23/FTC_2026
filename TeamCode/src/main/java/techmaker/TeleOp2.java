@@ -19,6 +19,7 @@ import techmaker.constants.LConstants;
 import techmaker.subsystems.ClawSubsystem;
 import techmaker.subsystems.ElevatorSubsystem;
 import techmaker.subsystems.IntakeSubsystem;
+import techmaker.subsystems.LimelightSubsystem;
 import techmaker.util.StateMachine;
 
 @TeleOp(name = "TeleOp Geral")
@@ -27,7 +28,7 @@ public class TeleOp2 extends OpMode {
     private ElevatorSubsystem elevator;
     private IntakeSubsystem intake;
     private Follower follower;
-    private Limelight3A limelight;
+    private LimelightSubsystem limelight;
     private StateMachine state = StateMachine.IDLE;
     private StateMachine stateClawSample = StateMachine.CLAW_SPECIMENT;
     private final Pose startPose = new Pose(0,0,180);
@@ -55,9 +56,8 @@ public class TeleOp2 extends OpMode {
         claw.setArmPosition(ClawSubsystem.ARM_LEFT_TRAVEL_CLAW, ClawSubsystem.ARM_RIGHT_TRAVEL_CLAW);
         intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
         intake.sliderMin();
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(0);
-        limelight.start();
+        limelight = new LimelightSubsystem(hardwareMap);
+
         telemetry.addData("Status", "TeleOp Principal Inicializado");
         telemetry.update();
     }
@@ -90,10 +90,8 @@ public class TeleOp2 extends OpMode {
 
         follower.update();
 
-        Pose pose= getVisionPose();
-        if(pose!=null){
-            follower.setPose(pose);
-        }
+        follower.setPose(limelight.updatePoseLimelight(follower.getPose()));
+
         intake.maintainSliderPosition();
 
         if (gamepad2.triangle && state == StateMachine.IDLE) {
@@ -210,7 +208,7 @@ public class TeleOp2 extends OpMode {
             }
         }
 
-        pose = follower.getPose();
+        Pose pose = follower.getPose();
         //claw.update(telemetry);
         elevator.update(telemetry);
         intake.update(telemetry);
@@ -219,24 +217,5 @@ public class TeleOp2 extends OpMode {
         telemetry.addData("Pose",pose);
         telemetry.update();
     }
-    private Pose getVisionPose() {
-        limelight.updateRobotOrientation(follower.getPose().getHeading());
-        LLResult result = limelight.getLatestResult();
 
-        if (result == null || !result.isValid()
-
-                || result.getStaleness() > 200) {
-            return null;
-        }
-
-        Pose3D visionPose3D = result.getBotpose_MT2();
-        if (visionPose3D != null) {
-            return new Pose(
-                    visionPose3D.getPosition().x * 100.0, // Converte metros para CM
-                    visionPose3D.getPosition().y * 100.0,
-                    visionPose3D.getOrientation().getYaw(AngleUnit.RADIANS)
-            );
-        }
-        return null;
-    }
 }

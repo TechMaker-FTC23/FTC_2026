@@ -8,32 +8,26 @@ import com.pedropathing.pathgen.BezierCurve;
 import com.pedropathing.pathgen.BezierLine;
 import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
-import techmaker.constants.Constants;
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
 import techmaker.subsystems.ClawSubsystem;
 import techmaker.subsystems.ElevatorSubsystem;
 import techmaker.subsystems.IntakeSubsystem;
-import techmaker.util.StateMachine;
+import techmaker.subsystems.LimelightSubsystem;
 
 @Autonomous
-public class autonomoteste extends LinearOpMode {
+public class AZUL_AutoBasket extends LinearOpMode {
     private ClawSubsystem claw;
     private ElevatorSubsystem elevator;
     private IntakeSubsystem intake;
     private Telemetry telemetryA;
     private Follower follower;
-    private Limelight3A limelight3A;
+    private LimelightSubsystem limelight3A;
     private final Pose startPose = new Pose(6.150190698818898, 62.440310500738185, Math.toRadians(180));
     private final Pose BargeUp = new Pose(32.40432859405758, -3.973167599655512, Math.toRadians(190.19982702485984));
     private final Pose BargeMiddle = new Pose(-8.774839386226624, 53.486424243356296, Math.toRadians(257.56982137500916));
@@ -56,11 +50,9 @@ public class autonomoteste extends LinearOpMode {
 
         intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
         intake.sliderMin();
-        limelight3A = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight3A.pipelineSwitch(0);
-        limelight3A.start();
+        limelight3A = new LimelightSubsystem(hardwareMap);
         telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
-        updatePoseLimelight();
+        follower.setPose(limelight3A.updatePoseLimelight(follower.getPose()));
         telemetryA.addData("Status", "Autônomo Inicializado.");
         telemetryA.addData("Start",follower.getPose());
         telemetryA.update();
@@ -127,29 +119,12 @@ public class autonomoteste extends LinearOpMode {
     private void waitForPathToFinish() {
         while (opModeIsActive() &&!isStopRequested() && follower.isBusy()) {
             follower.update();
-            updatePoseLimelight(); // Atualiza a pose continuamente durante o caminho
+            follower.setPose(limelight3A.updatePoseLimelight(follower.getPose()));
             telemetryA.addData("Pose", follower.getPose());
             telemetryA.update();
         }
     }
 
-    void updatePoseLimelight(){
-        double currentYawDegrees = Math.toDegrees(follower.getPose().getHeading());
-        limelight3A.updateRobotOrientation(currentYawDegrees);
 
-        LLResult result = limelight3A.getLatestResult();
 
-        if (result!= null && result.isValid()) {
-            Pose3D botpose = result.getBotpose_MT2();
-            if (botpose!= null) {
-                // Converte a Pose3D da Limelight (metros) para a Pose 2D do Pedro Pathing (polegadas)
-                Pose visionPose = new Pose(
-                        botpose.getPosition().x * 39.37, // metros para polegadas
-                        botpose.getPosition().y * 39.37, // metros para polegadas
-                        botpose.getOrientation().getYaw(AngleUnit.RADIANS)
-                );
-                follower.setPose(visionPose);
-            }
-        }
-    }
 }
