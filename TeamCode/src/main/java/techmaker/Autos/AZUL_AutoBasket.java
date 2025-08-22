@@ -10,6 +10,7 @@ import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -35,6 +36,7 @@ public class AZUL_AutoBasket extends LinearOpMode {
     private final Pose SpikeMarkD = new Pose(44.25882174274115, 54.10334068959153, Math.toRadians(266.017482969839));
     private final Pose SpikeMarkE = new Pose(50.39361908679872, 50.80521711214321, Math.toRadians(295.18674039010233));
     private final Pose basketPose = new Pose(52, 59, Math.toRadians(227));
+
     @Override
     public void runOpMode() throws InterruptedException {
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
@@ -52,14 +54,24 @@ public class AZUL_AutoBasket extends LinearOpMode {
         intake.sliderMin();
         limelight3A = new LimelightSubsystem(hardwareMap);
         telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
-        follower.setPose(limelight3A.updatePoseLimelight(follower.getPose()));
-        telemetryA.addData("Status", "Autônomo Inicializado.");
-        telemetryA.addData("Start",follower.getPose());
-        telemetryA.update();
+        while(!isStarted()) {
+            Pose actual = follower.getPose();
+            follower.setPose(limelight3A.updatePoseLimelight(actual));
+            follower.update();
+            telemetryA.addData("Status", "Autônomo Inicializado.");
+            if (limelight3A.isAprilTagVisible()) {
+                actual = follower.getPose();
+            } else {
+                actual = new Pose(0, 0, 0);
+            }
+            telemetryA.addData("Start", actual);
 
-        waitForStart();
-
-        if (opModeIsActive() &&!isStopRequested()) {
+            telemetryA.addData("Pose inicial correta", actual.roughlyEquals(startPose, 1) && limelight3A.isAprilTagVisible());
+            telemetryA.addData("Cor", intake.getColor());
+            telemetryA.update();
+            idle();
+        }
+        while (opModeIsActive() && !isStopRequested()) {
             intake.sliderMin();
             claw.setClawOpen(false);
 
@@ -74,8 +86,9 @@ public class AZUL_AutoBasket extends LinearOpMode {
                 elevator.update(telemetry);
             }
 
-            claw.setWristPosition(ClawSubsystem.WRIST_LEFT_SCORE_CLAW,ClawSubsystem.WRIST_RIGHT_SCORE_CLAW);
+            claw.setWristPosition(ClawSubsystem.WRIST_LEFT_SCORE_CLAW, ClawSubsystem.WRIST_RIGHT_SCORE_CLAW);
             claw.setArmPosition(ClawSubsystem.ARM_LEFT_SCORE_CLAW, ClawSubsystem.ARM_RIGHT_SCORE_CLAW);
+
             sleep(1500);
 
             claw.setClawOpen(true); // Agora sim, abre para pontuar
@@ -95,12 +108,11 @@ public class AZUL_AutoBasket extends LinearOpMode {
     }
 
     private void executePathToPose(Pose targetPose, boolean isCurve, Pose controlPoint) {
-        if (!opModeIsActive()) return;
 
         Pose startOfPathPose = follower.getPose();
         PathChain path;
 
-        if (isCurve && controlPoint!= null) {
+        if (isCurve && controlPoint != null) {
             path = follower.pathBuilder()
                     .addPath(new BezierCurve(new Point(startOfPathPose), new Point(controlPoint), new Point(targetPose)))
                     .setLinearHeadingInterpolation(startOfPathPose.getHeading(), targetPose.getHeading())
@@ -117,14 +129,13 @@ public class AZUL_AutoBasket extends LinearOpMode {
     }
 
     private void waitForPathToFinish() {
-        while (opModeIsActive() &&!isStopRequested() && follower.isBusy()) {
+        while (follower.isBusy() && opModeIsActive() && !isStopRequested()) {
             follower.update();
             follower.setPose(limelight3A.updatePoseLimelight(follower.getPose()));
             telemetryA.addData("Pose", follower.getPose());
             telemetryA.update();
         }
     }
-
 
 
 }
