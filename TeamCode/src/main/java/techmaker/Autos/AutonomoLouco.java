@@ -160,20 +160,23 @@ public class AutonomoLouco extends LinearOpMode {
                         claw.setWristPosition(ClawSubsystem.WRIST_LEFT_TRAVEL_CLAW, ClawSubsystem.WRIST_RIGHT_TRAVEL_CLAW);
                         elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_GROUND);
                         currentState = AutoState.SCORE_SEQUENCE_RETRACT_C;
+                        stateTimer.reset();
                     }
                     break;
 
                 case SCORE_SEQUENCE_RETRACT_C:
                     if (elevator.atTargetPosition(20)) {
-
-                     if (stateTimer.seconds() > 0.7){ intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
+                        intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
                         intake.sliderMax();
                         intake.startIntake();
-                        stateTimer.reset();
-                        }
+                     if (stateTimer.seconds() > 0.7){
+                         follower.followPath(pathToSpikeC);
+                         currentState = AutoState.DRIVE_TO_SPIKE_C;
+                         stateTimer.reset();
 
-                        follower.followPath(pathToSpikeC);
-                        currentState = AutoState.DRIVE_TO_SPIKE_C;
+                     }
+
+
                     }
                     break;
 
