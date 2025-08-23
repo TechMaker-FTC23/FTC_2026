@@ -85,8 +85,8 @@ public class TeleOP extends OpMode {
 
     @Override
     public void loop() {
-        double x = -gamepad1.left_stick_y;
-        double y = -gamepad1.left_stick_x;
+        double x = gamepad1.left_stick_y;
+        double y = gamepad1.left_stick_x;
         double turn = -gamepad1.right_stick_x;
 
         if(DataStorage.allianceColor== Constants.Intake.SampleColor.Red){
