@@ -47,7 +47,7 @@ public class IntakeSubsystem {
     private final ElapsedTime timer = new ElapsedTime();
     private double lastLeftSliderPos;
     private double lastRightSliderPos;
-    private final boolean isRedAlliance;
+    private boolean isRedAlliance;
     private final float[] hsvValues = new float[3];
     private CaptureState captureState = CaptureState.IDLE;
 
@@ -92,7 +92,9 @@ public class IntakeSubsystem {
             stopIntake();
         }
     }
-
+    public void setIsRedAlliance(boolean isRedAlliance){
+        this.isRedAlliance = isRedAlliance;
+    }
     public boolean isCaptureComplete() {
         return captureState == CaptureState.CAPTURED;
     }

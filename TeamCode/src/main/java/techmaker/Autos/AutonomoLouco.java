@@ -8,6 +8,7 @@ import com.pedropathing.pathgen.BezierLine;
 import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -17,11 +18,16 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
+import java.util.List;
+
+import techmaker.constants.Constants;
 import techmaker.constants.FConstants;
 import techmaker.constants.LConstants;
 import techmaker.subsystems.ClawSubsystem;
 import techmaker.subsystems.ElevatorSubsystem;
 import techmaker.subsystems.IntakeSubsystem;
+import techmaker.util.DataStorage;
+import techmaker.constants.Constants.Intake.SampleColor;
 
 @Autonomous(name = "Autonomo Louco")
 public class AutonomoLouco extends LinearOpMode {
@@ -75,20 +81,29 @@ public class AutonomoLouco extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         initializeHardware();
-
+        DataStorage.allianceColor = SampleColor.Red;
         telemetryA.addData("Status", "Autônomo de Competição Pronto.");
         telemetryA.addData("Pose",follower.getPose());
         telemetryA.addData("Erro na pose inicial",!startPose.roughlyEquals(follower.getPose(),5));
+        telemetryA.addData("Aliança",DataStorage.allianceColor);
         telemetryA.update();
 
         waitForStart();
         if (isStopRequested()) return;
-        buildPaths();
+        if (DataStorage.allianceColor == SampleColor.Red) {
+            buildPathsRed();
+            intake.setIsRedAlliance(true);
+        }
+        else {
+            buildPathsBlue();
+            intake.setIsRedAlliance(false);
+        }
 
         while (opModeIsActive() &&!isStopRequested()) {
             // --- ATUALIZAÇÕES CONTÍNUAS ---
             follower.update();
             elevator.update(telemetryA);
+            DataStorage.robotPose = follower.getPose();
 
             // --- LÓGICA DA FSM ---
             switch (currentState) {
@@ -262,7 +277,7 @@ public class AutonomoLouco extends LinearOpMode {
         intake.sliderMin();
     }
 
-    private void buildPaths() {
+    private void buildPathsBlue() {
         pathToBasketPreload = follower.pathBuilder()
                 .addPath(new BezierLine(new Point(follower.getPose()), new Point(basketPose)))
                 .setLinearHeadingInterpolation(follower.getPose().getHeading(), basketPose.getHeading())
@@ -302,7 +317,75 @@ public class AutonomoLouco extends LinearOpMode {
                 .setConstantHeadingInterpolation(bargePose.getHeading())
                 .build();
     }
+    private void buildPathsRed() {
+        Pose poseInit = follower.getPose();
+        Pose poseFinish = invertPose(basketPose);
+        pathToBasketPreload = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(poseInit), new Point( poseFinish)))
+                .setLinearHeadingInterpolation(poseInit.getHeading(), poseFinish.getHeading())
+                .build();
 
+        poseInit = invertPose(basketPose);
+        poseFinish = invertPose(spikeMarkCPose);
+        pathToSpikeC = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(poseInit), new Point( poseFinish)))
+                .setConstantHeadingInterpolation(poseFinish.getHeading())
+                .build();
+
+        pathFromSpikeCToBasket = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(poseFinish), new Point(poseInit)))
+                .setConstantHeadingInterpolation(poseInit.getHeading())
+                .build();
+
+        poseFinish = invertPose(SpikeMarkDPose);
+        pathToSpikeD = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(poseInit), new Point( poseFinish)))
+                .setConstantHeadingInterpolation(poseFinish.getHeading())
+                .build();
+
+       pathFromSpikeDToBasket  = follower.pathBuilder()
+               .addPath(new BezierLine(new Point(poseFinish), new Point(poseInit)))
+               .setConstantHeadingInterpolation(poseInit.getHeading())
+               .build();
+
+
+        poseFinish = invertPose(SpikeMarkEPose);
+        pathToSpikeE = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(poseInit), new Point( poseFinish)))
+                .setConstantHeadingInterpolation(poseFinish.getHeading())
+                .build();
+
+        pathFromSpikeEToBasket = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(poseFinish), new Point(poseInit)))
+                .setConstantHeadingInterpolation(poseInit.getHeading())
+                .build();
+
+        poseFinish = invertPose(bargePose);
+        pathToBarge = follower.pathBuilder()
+                .addPath(new BezierLine(new Point(poseInit), new Point( poseFinish)))
+                .setConstantHeadingInterpolation(poseFinish.getHeading())
+                .build();
+    }
+    public SampleColor getRobotAllianceViaApriltag(){
+        LLResult result = limelight.getLatestResult();
+        if (result != null) {
+            if (result.isValid()) {
+                List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
+                for (LLResultTypes.FiducialResult fr : fiducialResults) {
+                    if(fr.getFiducialId()==13){
+                        return SampleColor.Blue;
+                    }
+                    if(fr.getFiducialId()==16){
+                        return SampleColor.Red;
+                    }
+
+                }
+            }
+
+        }
+        return SampleColor.Idle;
+
+    }
     private void updatePoseFromLimelight() {
         double currentYawDegrees = Math.toDegrees(follower.getPose().getHeading());
         limelight.updateRobotOrientation(currentYawDegrees);
@@ -322,6 +405,9 @@ public class AutonomoLouco extends LinearOpMode {
             follower.setPose(visionPose);
             follower.update();
         }
+    }
+    public Pose invertPose(Pose pose){
+        return new Pose(-pose.getX(),-pose.getY(),pose.getHeading()-Math.PI);
     }
 
     private void updateTelemetry() {
