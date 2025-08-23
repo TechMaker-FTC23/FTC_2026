@@ -32,7 +32,7 @@ public class TeleOP extends OpMode {
     private Limelight3A limelight;
     private StateMachine state = StateMachine.IDLE;
     private StateMachine stateClawSample = StateMachine.CLAW_SPECIMENT;
-    private final Pose startPose = new Pose(0, 0, 180);
+    private final Pose startPose = new Pose(0, 0, Math.PI);
     private final Pose BargeUp = new Pose(95 / 2.54, 80 / 2.54, Math.toRadians(0));
     private final Pose BargeMiddle = new Pose(100 / 2.54, 30 / 2.54, Math.toRadians(-90));
     private final Pose Basket = new Pose(51.65671040692668, 58.230110228531004, Math.toRadians(221.45235477987202));
@@ -71,8 +71,8 @@ public class TeleOP extends OpMode {
         intake.sliderMin();
         intake.update(telemetry);
         telemetry.update();
-       follower.setPose(startPose);
-       follower.update();
+        follower.setStartingPose(DataStorage.robotPose);
+        follower.update();
         updatePoseFromLimelight();
     }
 
@@ -85,13 +85,19 @@ public class TeleOP extends OpMode {
 
     @Override
     public void loop() {
-        double y = -gamepad1.left_stick_y;
-        double x = -gamepad1.left_stick_x;
+        double x = -gamepad1.left_stick_y;
+        double y = -gamepad1.left_stick_x;
         double turn = -gamepad1.right_stick_x;
+
+        if(DataStorage.allianceColor== Constants.Intake.SampleColor.Red){
+            x = -x;
+            y = -y;
+            turn = -turn;
+        }
 
         double heading = follower.getPose().getHeading();
 
-        follower.setTeleOpMovementVectors(y, x, turn, false);
+        follower.setTeleOpMovementVectors(y, x, turn, gamepad1.right_bumper);
         follower.update();
         updatePoseFromLimelight();
 
@@ -109,8 +115,13 @@ public class TeleOP extends OpMode {
             timer.reset();
 
         }
-        if(gamepad1.dpad_up){
-            follower.setPose(startPose);
+        if(gamepad1.dpad_up) {
+            if (DataStorage.allianceColor == Constants.Intake.SampleColor.Red) {
+                follower.setPose(invertPose(startPose));
+            } else {
+                follower.setPose(startPose);
+            }
+
             follower.update();
             updatePoseFromLimelight();
         }
@@ -242,4 +253,8 @@ public class TeleOP extends OpMode {
             follower.update();
         }
     }
+    public Pose invertPose(Pose pose){
+        return new Pose(-pose.getX(),-pose.getY(),pose.getHeading()-Math.PI);
+    }
+
 }

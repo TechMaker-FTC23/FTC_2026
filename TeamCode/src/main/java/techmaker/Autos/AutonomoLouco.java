@@ -81,7 +81,7 @@ public class AutonomoLouco extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         initializeHardware();
-        DataStorage.allianceColor = SampleColor.Red;
+        DataStorage.allianceColor = getRobotAllianceViaApriltag();
         telemetryA.addData("Status", "Autônomo de Competição Pronto.");
         telemetryA.addData("Pose",follower.getPose());
         telemetryA.addData("Erro na pose inicial",!startPose.roughlyEquals(follower.getPose(),5));
@@ -381,7 +381,6 @@ public class AutonomoLouco extends LinearOpMode {
 
                 }
             }
-
         }
         return SampleColor.Idle;
 
