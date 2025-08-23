@@ -20,23 +20,23 @@ public class ClawSubsystem {
 
     // --- Constantes de Posição com Nomes Clarificados ---
     // Posições para o estado INTAKE
-    public static double ARM_LEFT_INTAKE_CLAW = 0;
-    public static double ARM_RIGHT_INTAKE_CLAW = 1;
+    public static double ARM_LEFT_INTAKE_CLAW = 0.05;
+    public static double ARM_RIGHT_INTAKE_CLAW = 0.95;
 
-    public static double WRIST_LEFT_INTAKE_CLAW = 0.7;
-    public static double WRIST_RIGHT_INTAKE_CLAW = 0.3;
+    public static double WRIST_LEFT_INTAKE_CLAW = 1;
+    public static double WRIST_RIGHT_INTAKE_CLAW = 0.2;
 
     // Posições para o estado TRAVEL (intermediário)
     public static double ARM_LEFT_TRAVEL_CLAW = 0.1;
     public static double ARM_RIGHT_TRAVEL_CLAW = 0.9;
     public static double WRIST_LEFT_TRAVEL_CLAW = 0.9;
-    public static double WRIST_RIGHT_TRAVEL_CLAW = 0.1;
+    public static double WRIST_RIGHT_TRAVEL_CLAW = 0.25;
 
     // Posições para o estado SCORE
     public static double ARM_LEFT_SCORE_CLAW = 0.45;
     public static double ARM_RIGHT_SCORE_CLAW = 0.55;
-    public static double WRIST_LEFT_SCORE_CLAW = 0.25;
-    public static double WRIST_RIGHT_SCORE_CLAW = 0.75;
+    public static double WRIST_LEFT_SCORE_CLAW = 0.15;
+    public static double WRIST_RIGHT_SCORE_CLAW = 0.85;
 
     // Posições da Garra Central (aberta/fechada)
     public static double CLAW_OPEN = 0.4;

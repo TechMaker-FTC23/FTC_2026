@@ -122,7 +122,8 @@ public class AutonomoLouco extends LinearOpMode {
                 // --- Sequência de Pontuação (substitui a thread) ---
                 case SCORE_SEQUENCE_START:
                         claw.setArmPosition(ClawSubsystem.ARM_LEFT_INTAKE_CLAW, ClawSubsystem.ARM_RIGHT_INTAKE_CLAW);
-                        claw.setClawOpen(false);
+                        tranferSample();
+
                     if (stateTimer.seconds() > 0.2) {
                         intake.reverseIntake();
                     }
@@ -404,6 +405,15 @@ public class AutonomoLouco extends LinearOpMode {
             follower.setPose(visionPose);
             follower.update();
         }
+    }
+    public void tranferSample(){
+
+        intake.reverseIntake();
+        sleep(100);
+        intake.stopIntake();
+        claw.setClawOpen(false);
+
+
     }
     public Pose invertPose(Pose pose){
         return new Pose(-pose.getX(),-pose.getY(),pose.getHeading()-Math.PI);

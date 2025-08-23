@@ -26,8 +26,8 @@ public class IntakeSubsystem {
 
     public static double LEFT_INTAKE_WRIST_MAX = 0.9;
     public static double RIGHT_INTAKE_WRIST_MAX = 0.1;
-    public static double LEFT_INTAKE_WRIST_MIN = 0.32;
-    public static double RIGHT_INTAKE_WRIST_MIN = 0.68;
+    public static double LEFT_INTAKE_WRIST_MIN = 0.35;
+    public static double RIGHT_INTAKE_WRIST_MIN = 0.6;
 
     public static double INTAKE_SLIDER_MAX = 0.25;
     public static double INTAKE_SLIDER_MIN = 0.6;
@@ -112,7 +112,7 @@ public class IntakeSubsystem {
     public void reverseIntake() {
         leftIntake.setPower(0.8);
         rightIntake.setPower(0.8);
-        middleIntake.setPower(0.8);
+        //middleIntake.setPower(0.8);
     }
 
     public void stopIntake() {

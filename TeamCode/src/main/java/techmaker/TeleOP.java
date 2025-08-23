@@ -86,7 +86,7 @@ public class TeleOP extends OpMode {
     @Override
     public void loop() {
         double x = gamepad1.left_stick_y;
-        double y = gamepad1.left_stick_x;
+        double y = -gamepad1.left_stick_x;
         double turn = -gamepad1.right_stick_x;
 
         if(DataStorage.allianceColor== Constants.Intake.SampleColor.Red){
@@ -129,7 +129,7 @@ public class TeleOP extends OpMode {
         if (gamepad2.right_bumper && stateClawSample == StateMachine.CLAW_SPECIMENT) {
             stateClawSample = StateMachine.CLAW_SAMPLE;
             claw.setArmPosition(ClawSubsystem.ARM_LEFT_INTAKE_CLAW, ClawSubsystem.ARM_RIGHT_INTAKE_CLAW);
-            claw.setClawOpen(false);
+            intake.reverseIntake();
             timeout = 100;
             timer.reset();
         } else if (gamepad2.left_bumper && stateClawSample == StateMachine.DELIVERY_SPECIMENT) {
@@ -205,12 +205,18 @@ public class TeleOP extends OpMode {
             }
 
             if (stateClawSample == StateMachine.CLAW_SAMPLE) {
-                intake.reverseIntake();
+                claw.setClawOpen(false);
+
+                stateClawSample = StateMachine.CLAW_SCORING;
+                timeout = 200;
+                timer.reset();
+            } else if (stateClawSample == StateMachine.CLAW_SCORING) {
+                claw.setClawOpen(false);
                 elevator.goToPositionPID(ElevatorSubsystem.ELEVATOR_PRESET_HIGH);
                 stateClawSample = StateMachine.DELIVER_SAMPLE;
                 timeout = 200;
                 timer.reset();
-            } else if (stateClawSample == StateMachine.DELIVER_SAMPLE) {
+            }else if (stateClawSample == StateMachine.DELIVER_SAMPLE) {
                 claw.setState(ClawSubsystem.ClawState.SCORE);
                 intake.stopIntake();
                 stateClawSample = StateMachine.DELIVERY_SPECIMENT;
@@ -232,7 +238,18 @@ public class TeleOP extends OpMode {
         telemetry.update();
 
     }
+    public void tranferSample(){
 
+        intake.reverseIntake();
+        double time = getRuntime()+0.1;
+        while(getRuntime()<time){
+
+        }
+        intake.stopIntake();
+        claw.setClawOpen(false);
+
+
+    }
     private void updatePoseFromLimelight() {
         double currentYawDegrees = Math.toDegrees(follower.getPose().getHeading());
         limelight.updateRobotOrientation(currentYawDegrees);
