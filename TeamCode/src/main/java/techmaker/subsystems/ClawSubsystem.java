@@ -15,7 +15,8 @@ public class ClawSubsystem {
     public enum ClawState {
         INTAKE,  // Posição para pegar os pixels do intake
         TRAVEL,  // Posição segura para se movimentar pelo campo
-        SCORE    // Posição para pontuar no basket
+        SCORE,   // Posição para pontuar no basket
+        CLIPS    // NOVO: Posição para pontuar nos clips
     }
 
     // --- Constantes de Posição com Nomes Clarificados ---
@@ -37,6 +38,13 @@ public class ClawSubsystem {
     public static double ARM_RIGHT_SCORE_CLAW = 0.55;
     public static double WRIST_LEFT_SCORE_CLAW = 0.15;
     public static double WRIST_RIGHT_SCORE_CLAW = 0.85;
+
+    // --- NOVO: Posições para o estado CLIPS ---
+    // Inicializadas com os mesmos valores de SCORE para começar.
+    public static double ARM_LEFT_CLIPS_CLAW = 0.45;
+    public static double ARM_RIGHT_CLIPS_CLAW = 0.55;
+    public static double WRIST_LEFT_CLIPS_CLAW = 0.15;
+    public static double WRIST_RIGHT_CLIPS_CLAW = 0.85;
 
     // Posições da Garra Central (aberta/fechada)
     public static double CLAW_OPEN = 0.4;
@@ -70,7 +78,7 @@ public class ClawSubsystem {
     /**
      * Método principal para controlar a garra.
      * Move todos os servos para um estado pré-definido.
-     * @param state O estado desejado (INTAKE, TRAVEL, SCORE).
+     * @param state O estado desejado (INTAKE, TRAVEL, SCORE, CLIPS).
      */
     public void setState(ClawState state) {
         switch (state) {
@@ -86,6 +94,10 @@ public class ClawSubsystem {
                 setArmPosition(ARM_LEFT_SCORE_CLAW, ARM_RIGHT_SCORE_CLAW);
                 setWristPosition(WRIST_LEFT_SCORE_CLAW, WRIST_RIGHT_SCORE_CLAW);
                 break;
+            case CLIPS:
+                setArmPosition(ARM_LEFT_CLIPS_CLAW, ARM_RIGHT_CLIPS_CLAW);
+                setWristPosition(WRIST_LEFT_CLIPS_CLAW, WRIST_RIGHT_CLIPS_CLAW);
+                break;
         }
     }
 
@@ -94,7 +106,7 @@ public class ClawSubsystem {
      * @param open Se true, abre a garra; se false, fecha.
      */
     public void setClawOpen(boolean open) {
-        if (middleClawServo != null) {
+        if (middleClawServo!= null) {
             if (open) {
                 middleClawServo.setPosition(CLAW_OPEN);
             } else {
@@ -106,22 +118,22 @@ public class ClawSubsystem {
     // --- Métodos de baixo nível ---
 
     public void setArmPosition(double positionL, double positionR) {
-        if (leftClawArm != null) leftClawArm.setPosition(positionL);
-        if (rightClawArm != null) rightClawArm.setPosition(positionR);
+        if (leftClawArm!= null) leftClawArm.setPosition(positionL);
+        if (rightClawArm!= null) rightClawArm.setPosition(positionR);
     }
 
     public void setWristPosition(double positionL, double positionR) {
-        if (leftClawWrist != null) leftClawWrist.setPosition(positionL);
-        if (rightClawWrist != null) rightClawWrist.setPosition(positionR);
+        if (leftClawWrist!= null) leftClawWrist.setPosition(positionL);
+        if (rightClawWrist!= null) rightClawWrist.setPosition(positionR);
     }
 
     public void setMiddleClawPosition(double position) {
-        if (middleClawServo != null) middleClawServo.setPosition(position);
+        if (middleClawServo!= null) middleClawServo.setPosition(position);
     }
 
     public void update(Telemetry telemetry) {
-        telemetry.addData("Claw Servo", (middleClawServo != null) ? "OK" : "NÃO CONECTADO");
-        telemetry.addData("Wrist Servos", (leftClawWrist != null && rightClawWrist != null) ? "OK" : "NÃO CONECTADO");
-        telemetry.addData("Arm Servos", (leftClawArm != null && rightClawArm != null) ? "OK" : "NÃO CONECTADO");
+        telemetry.addData("Claw Servo", (middleClawServo!= null)? "OK" : "NÃO CONECTADO");
+        telemetry.addData("Wrist Servos", (leftClawWrist!= null && rightClawWrist!= null)? "OK" : "NÃO CONECTADO");
+        telemetry.addData("Arm Servos", (leftClawArm!= null && rightClawArm!= null)? "OK" : "NÃO CONECTADO");
     }
 }

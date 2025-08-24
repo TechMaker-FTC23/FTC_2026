@@ -100,6 +100,9 @@ public class TeleOPTeste extends OpMode {
         if(gamepad1.dpad_down){
             claw.setClawOpen(true);
         }
+        if (gamepad1.left_bumper){
+            claw.setState(ClawSubsystem.ClawState.CLIPS);
+        }
 
 
         intake.sliderMin();

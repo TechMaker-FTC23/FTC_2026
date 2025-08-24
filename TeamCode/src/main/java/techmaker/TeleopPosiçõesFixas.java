@@ -4,12 +4,14 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
+import com.pedropathing.pathgen.BezierLine;
+import com.pedropathing.pathgen.PathChain;
+import com.pedropathing.pathgen.Point;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
@@ -23,8 +25,8 @@ import techmaker.subsystems.IntakeSubsystem;
 import techmaker.util.DataStorage;
 import techmaker.util.StateMachine;
 
-@TeleOp(name = "TeleOp Geral")
-public class TeleOP extends OpMode {
+@TeleOp(name = "TeleOp Posições Fixas")
+public class TeleopPosiçõesFixas extends OpMode {
     private ClawSubsystem claw;
     private ElevatorSubsystem elevator;
     private IntakeSubsystem intake;
@@ -33,8 +35,8 @@ public class TeleOP extends OpMode {
     private StateMachine state = StateMachine.IDLE;
     private StateMachine stateClawSample = StateMachine.CLAW_SPECIMENT;
     private final Pose startPose = new Pose(0, 0, Math.PI);
-    private final Pose BargeUp = new Pose(95 / 2.54, 80 / 2.54, Math.toRadians(0));
-    private final Pose BargeMiddle = new Pose(100 / 2.54, 30 / 2.54, Math.toRadians(-90));
+    private final Pose BargeUp = new Pose(-8.774839386226624, 53.486424243356296, Math.toRadians(257.56982137500916));
+    private final Pose BargeMiddle = new Pose(32.40432859405758, -3.973167599655512, Math.toRadians(190.19982702485984));
     private final Pose Basket = new Pose(51.65671040692668, 58.230110228531004, Math.toRadians(221.45235477987202));
     private final ElapsedTime timer = new ElapsedTime();
     private long timeout = 0;
@@ -45,7 +47,11 @@ public class TeleOP extends OpMode {
         telemetry = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
 
         follower = new Follower(hardwareMap, FConstants.class, LConstants.class);
-        follower.setStartingPose(DataStorage.robotPose);
+        if (DataStorage.robotPose!= null) {
+            follower.setStartingPose(DataStorage.robotPose);
+        } else {
+            follower.setStartingPose(startPose);
+        }
         follower.update();
         claw = new ClawSubsystem(hardwareMap);
         elevator = new ElevatorSubsystem(hardwareMap);
@@ -71,7 +77,9 @@ public class TeleOP extends OpMode {
         intake.sliderMin();
         intake.update(telemetry);
         telemetry.update();
-        follower.setStartingPose(DataStorage.robotPose);
+        if (DataStorage.robotPose!= null) {
+            follower.setStartingPose(DataStorage.robotPose);
+        }
         follower.update();
         updatePoseFromLimelight();
     }
@@ -85,21 +93,46 @@ public class TeleOP extends OpMode {
 
     @Override
     public void loop() {
-        double x = gamepad1.left_stick_y;
-        double y = -gamepad1.left_stick_x;
-        double turn = -gamepad1.right_stick_x;
+        follower.update();
 
-        if(DataStorage.allianceColor== Constants.Intake.SampleColor.Red){
-            x = -x;
-            y = -y;
-            turn = -turn;
+        // --- NOVO: Botão de Cancelamento / Pânico ---
+        if (gamepad1.dpad_down) {
+            follower.breakFollowing();
         }
 
-        double heading = follower.getPose().getHeading();
+        // --- LÓGICA DE CONTROLE DO CHASSI: MANUAL VS. AUTOMÁTICO ---
+        if (follower.isBusy()) {
+            // MODO AUTOMÁTICO: O robô está se movendo para um alvo.
+            // Os joysticks de direção são ignorados para não haver interferência.
+        } else {
+            // MODO MANUAL: O robô está livre.
+            double x = gamepad1.left_stick_y;
+            double y = -gamepad1.left_stick_x;
+            double turn = -gamepad1.right_stick_x;
 
-        follower.setTeleOpMovementVectors(y, x, turn, gamepad1.right_bumper);
-        follower.update();
-        updatePoseFromLimelight();
+            if(DataStorage.allianceColor== Constants.Intake.SampleColor.Red){
+                x = -x;
+                y = -y;
+                turn = -turn;
+            }
+
+            double heading = follower.getPose().getHeading();
+
+            follower.setTeleOpMovementVectors(y, x, turn, gamepad1.right_bumper);
+            updatePoseFromLimelight();
+
+            // --- NOVO: Comandos de Mira Automática (Posições Fixas) ---
+            if (gamepad1.cross) {
+                Pose targetBasket = (DataStorage.allianceColor == Constants.Intake.SampleColor.Red)? invertPose(Basket) : Basket;
+                goToPoint(targetBasket);
+            } else if (gamepad1.circle) {
+                Pose targetBargeUp = (DataStorage.allianceColor == Constants.Intake.SampleColor.Red)? invertPose(BargeUp) : BargeUp;
+                goToPoint(targetBargeUp);
+            } else if (gamepad1.square) {
+                Pose targetBargeMiddle = (DataStorage.allianceColor == Constants.Intake.SampleColor.Red)? invertPose(BargeMiddle) : BargeMiddle;
+                goToPoint(targetBargeMiddle);
+            }
+        }
 
         intake.maintainSliderPosition();
 
@@ -151,7 +184,7 @@ public class TeleOP extends OpMode {
             intake.reverseIntake();
         }
 
-        if (state == StateMachine.REVERTING_INTAKE && !intake.isPixelDetected()) {
+        if (state == StateMachine.REVERTING_INTAKE &&!intake.isPixelDetected()) {
             state = StateMachine.RETURNING_INTAKE;
             intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
             intake.stopIntake();
@@ -169,16 +202,20 @@ public class TeleOP extends OpMode {
                     state = StateMachine.RETURNING_INTAKE;
                     intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MIN, IntakeSubsystem.RIGHT_INTAKE_WRIST_MIN);
                     intake.stopIntake();
-                    timeout = 30;
+                    intake.sliderMin();
+                    timeout = 200;
                     timer.reset();
                 } else {
                     intake.reverseIntake();
                     state = StateMachine.REVERTING_INTAKE;
                 }
             } else if (state == StateMachine.RETURNING_INTAKE) {
-                intake.stopIntake();
-                intake.sliderMin();
-                state = StateMachine.IDLE;
+                // NOVO: ROTA AUTOMÁTICA PARA A CESTA
+                // Quando o timer de 500ms termina, o slider já recuou.
+                // Agora, iniciamos o caminho para a cesta.
+                Pose targetBasket = (DataStorage.allianceColor == Constants.Intake.SampleColor.Red)? invertPose(Basket) : Basket;
+                goToPoint(targetBasket);
+                state = StateMachine.IDLE; // A state machine dos mecanismos pode voltar para IDLE.
             } else if (state == StateMachine.AUTO_CYCLE_START) {
                 intake.wrist(IntakeSubsystem.LEFT_INTAKE_WRIST_MAX, IntakeSubsystem.RIGHT_INTAKE_WRIST_MAX);
                 intake.startIntake();
@@ -235,6 +272,7 @@ public class TeleOP extends OpMode {
         telemetry.addData("Main State", state);
         //telemetry.addData("Claw State", stateClawSample);
         telemetry.addData("Pose", pose);
+        telemetry.addData("Mode", follower.isBusy()? "AUTOMATICO" : "MANUAL"); // Telemetria de modo
         telemetry.update();
 
     }
@@ -250,17 +288,32 @@ public class TeleOP extends OpMode {
 
 
     }
+
+    /**
+     * NOVO: Gera e segue um caminho da posição atual até um ponto de destino.
+     * @param targetPose O ponto final para onde o robô deve ir.
+     */
+    private void goToPoint(Pose targetPose) {
+        if (!follower.isBusy()) {
+            PathChain path = follower.pathBuilder()
+                    .addPath(new BezierLine(new Point(follower.getPose()), new Point(targetPose)))
+                    .setLinearHeadingInterpolation(follower.getPose().getHeading(), targetPose.getHeading())
+                    .build();
+            follower.followPath(path, true);
+        }
+    }
+
     private void updatePoseFromLimelight() {
         double currentYawDegrees = Math.toDegrees(follower.getPose().getHeading());
         limelight.updateRobotOrientation(currentYawDegrees);
 
         LLResult result = limelight.getLatestResult();
-        if (result == null || !result.isValid()) {
+        if (result == null ||!result.isValid()) {
             return;
         }
 
         Pose3D botpose = result.getBotpose_MT2();
-        if (botpose != null) {
+        if (botpose!= null) {
             Pose visionPose = new Pose(
                     botpose.getPosition().x * 39.37, // metros para polegadas
                     botpose.getPosition().y * 39.37, // metros para polegadas
@@ -273,4 +326,5 @@ public class TeleOP extends OpMode {
     public Pose invertPose(Pose pose){
         return new Pose(-pose.getX(),-pose.getY(),pose.getHeading()-Math.PI);
     }
+
 }
